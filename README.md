@@ -1,96 +1,189 @@
-# FormAutoPopulation
+# Form Auto-Population Service
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A NestJS microservice for automated form population using FHIR patient data, built with Kafka event-driven architecture and Aidbox FHIR server integration.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## Features
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+- 🏥 **FHIR Integration** - Patient data from Aidbox FHIR server
+- 📋 **Form Auto-Population** - Intelligent field population based on patient data
+- ✅ **Form Validation** - Comprehensive form validation with custom rules
+- 📨 **Event-Driven Architecture** - Kafka microservices for scalable processing
+- 🔍 **Health Monitoring** - Multi-service health checks
+- 🧪 **Comprehensive Testing** - Vitest test suite with 100% service coverage
 
-## Run tasks
+## Architecture
 
-To run tasks with Nx use:
-
-```sh
-npx nx <target> <project-name>
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   HTTP Clients  │    │  Kafka Events   │    │  FHIR Server    │
+└─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘
+          │                      │                      │
+          ▼                      ▼                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              Form Auto-Population Service                       │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │ REST Controller │  │ Kafka Consumer  │  │ FHIR Client     │ │
+│  │ - Form Templates│  │ - Population    │  │ - Patient Data  │ │
+│  │ - Validation    │  │ - Validation    │  │ - Resource CRUD │ │
+│  │ - Population    │  │ - Events        │  │ - Subscriptions │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+          │                      │                      │
+          ▼                      ▼                      ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│    Database     │    │     Kafka       │    │    Aidbox       │
+│   (Forms Data)  │    │ (Event Stream)  │    │ (FHIR Server)   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-For example:
+## Quick Start
 
-```sh
-npx nx build myproject
+### 1. Prerequisites
+
+- Node.js 18+
+- Docker & Docker Compose
+- Aidbox license key (free dev license available)
+
+### 2. Environment Setup
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit .env and add your Aidbox license key:
+# AIDBOX_LICENSE_KEY=your_aidbox_dev_license_key_here
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+**Getting Aidbox License (Required)**:
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+1. Sign up at [https://aidbox.app/ui/portal#/signup](https://aidbox.app/ui/portal#/signup)
+2. Verify email and complete profile
+3. Go to Licenses → New license → Dev → Self-Hosted → Create
+4. Copy the license key to your `.env` file
 
-## Add new projects
+### 3. Start Infrastructure
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+```bash
+# Start Kafka, Aidbox, databases, and supporting services
+docker compose up -d
 
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
+# Verify services are healthy
+docker compose ps
 ```
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
+### 4. Install Dependencies & Start Service
 
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
+```bash
+# Install dependencies
+npm install
 
-# Generate a library
-npx nx g @nx/react:lib some-lib
+# Start the form auto-population service
+npx nx serve form-auto-population-service
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+## Service Endpoints
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### HTTP API
 
-## Set up CI!
+- **Service**: http://localhost:3000/api
+- **Health**: http://localhost:3000/health
+- **Form Population**: POST http://localhost:3000/api/forms/populate
+- **Form Validation**: POST http://localhost:3000/api/forms/validate
+- **Form Templates**: GET http://localhost:3000/api/forms/:formId/template
 
-### Step 1
+### Infrastructure Services
 
-To connect to Nx Cloud, run the following command:
+- **Aidbox FHIR Server**: http://localhost:8081
+- **Healthcare Events Service**: http://localhost:3002
+- **Kafdrop (Kafka UI)**: http://localhost:19001
+- **pgAdmin**: http://localhost:5050
 
-```sh
-npx nx connect
+### Database Ports
+
+- **Forms Database**: localhost:5435 (forms_user/forms_password)
+- **Aidbox Database**: localhost:5434 (aidbox/qawcX9QCjB)
+
+## Development
+
+### Available Commands
+
+```bash
+# Development
+npx nx serve form-auto-population-service    # Start form service
+npx nx serve healthcare-events               # Start healthcare events service
+npx nx build form-auto-population-service    # Build form service
+npx nx build healthcare-events               # Build healthcare events service
+npx nx build fhir-client                     # Build FHIR client library
+npx nx test form-auto-population-service     # Run form service tests
+npx nx test healthcare-events                # Run healthcare events tests
+npx nx test fhir-client                      # Run FHIR client tests
+
+# Infrastructure
+docker compose up -d                        # Start all services
+docker compose down                         # Stop all services
+docker compose logs -f                      # View all logs
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+### API Usage Examples
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+#### Form Population Request
 
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
+```bash
+curl -X POST http://localhost:3000/api/forms/populate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "formId": "patient-intake",
+    "patientId": "patient-123",
+    "formData": {}
+  }'
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+#### Form Validation Request
 
-## Install Nx Console
+```bash
+curl -X POST http://localhost:3000/api/forms/validate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "formId": "patient-intake",
+    "patientId": "patient-123",
+    "formData": {
+      "patientName": "John Doe",
+      "dateOfBirth": "1990-01-01"
+    }
+  }'
+```
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+## Kafka Event Processing
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+The service listens for these Kafka topics:
 
-## Useful links
+- **`form.population.requested`** - Triggers automatic form population
+- **`form.validation.requested`** - Triggers form validation
+- **`form.populated`** - Form population completion events
 
-Learn more:
+## Configuration
 
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Key environment variables in `.env`:
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- **`AIDBOX_LICENSE_KEY`** - Required Aidbox license
+- **`KAFKA_BOOTSTRAP_SERVERS`** - Kafka connection (default: localhost:9094)
+- **`AIDBOX_URL`** - FHIR server URL (default: http://localhost:8081)
+- **`PORT`** - Service port (default: 3000)
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Aidbox won't start**: Verify your `AIDBOX_LICENSE_KEY` is valid
+2. **Kafka connection errors**: Ensure Kafka is healthy with `docker compose ps`
+3. **Service won't connect**: Check `.env` configuration matches Docker networking
+
+### Health Checks
+
+```bash
+# Check service health
+curl http://localhost:3000/health
+
+# Check infrastructure status
+docker compose ps
+```

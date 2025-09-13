@@ -1,0 +1,43 @@
+{
+  "name": "fhir-client",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/fhir-client/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/fhir-client",
+        "main": "libs/fhir-client/src/index.ts",
+        "tsConfig": "libs/fhir-client/tsconfig.lib.json",
+        "assets": ["libs/fhir-client/*.md"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["libs/fhir-client/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {}
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prettier --write \"libs/fhir-client/**/*.{js,ts,json,md}\""
+      }
+    },
+    "format:check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prettier --check \"libs/fhir-client/**/*.{js,ts,json,md}\""
+      }
+    }
+  },
+  "tags": ["type:lib", "scope:shared"]
+}
