@@ -41,52 +41,11 @@ networks:
         - subnet: 172.25.0.0/16
 
 volumes:
-  postgres_data_forms:
   postgres_data_aidbox:
   kafka_data:
   zookeeper_data:
 
 services:
-  # Form Auto-Population PostgreSQL Database
-  forms-postgres:
-    image: postgres:17-alpine
-    container_name: forms-database
-    environment:
-      POSTGRES_DB: ${FORMS_DB_NAME:-forms_db}
-      POSTGRES_USER: ${FORMS_DB_USER:-forms_user}
-      POSTGRES_PASSWORD: ${FORMS_DB_PASSWORD:-forms_password}
-      POSTGRES_INITDB_ARGS: '--auth-host=scram-sha-256'
-    command:
-      - postgres
-      - -c
-      - shared_preload_libraries=pg_stat_statements
-      - -c
-      - log_statement=all
-      - -c
-      - log_destination=stderr
-      - -c
-      - max_connections=200
-      - -c
-      - shared_buffers=256MB
-    ports:
-      - '5435:5432'
-    volumes:
-      - postgres_data_forms:/var/lib/postgresql/data
-    networks:
-      form-network:
-        ipv4_address: 172.25.0.20
-    restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'pg_isready -U ${FORMS_DB_USER:-forms_user} -d ${FORMS_DB_NAME:-forms_db}',
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
   # Aidbox PostgreSQL Database
   postgres-aidbox:
     image: postgres:17-alpine
@@ -337,20 +296,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-
-  # pgAdmin for database management
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: database-admin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
-    ports:
-      - '5050:80'
-    depends_on:
-      - forms-postgres
-      - postgres-aidbox
-    networks:
-      form-network:
-        ipv4_address: 172.25.0.50
-    restart: unless-stopped

@@ -149,6 +149,26 @@ export class HealthcareEventsConfig {
   }
 
   /**
+   * Get form population completed topic name
+   */
+  get formPopulationCompletedTopic(): string {
+    return (
+      this.configService.get('FORM_POPULATION_COMPLETED_TOPIC', { infer: true }) ||
+      'form.population.completed'
+    );
+  }
+
+  /**
+   * Get form validation requested topic name
+   */
+  get formValidationRequestedTopic(): string {
+    return (
+      this.configService.get('FORM_VALIDATION_REQUESTED_TOPIC', { infer: true }) ||
+      'form.validation.requested'
+    );
+  }
+
+  /**
    * Get Kafka connection timeout in milliseconds
    */
   get kafkaConnectionTimeout(): number {

@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(npx nx list:*)",
+      "Bash(npx nx show:*)",
+      "Bash(npx nx run-many:*)",
+      "Bash(npx nx test:*)",
+      "Bash(npx nx build:*)",
+      "Bash(npx prettier:*)",
+      "Bash(git add:*)",
+      "Bash(npx nx generate:*)",
+      "Bash(rm:*)",
+      "Bash(mkdir:*)",
+      "Bash(git restore:*)",
+      "Bash(npm install:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

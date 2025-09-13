@@ -1,0 +1,31 @@
+{
+  "name": "fhir-converters",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/fhir-converters/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/fhir-converters",
+        "tsConfig": "libs/fhir-converters/tsconfig.lib.json",
+        "packageJson": "libs/fhir-converters/package.json"
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "libs/fhir-converters/jest.config.ts"
+      }
+    },
+    "eslint:lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["libs/fhir-converters/**/*.ts"]
+      }
+    }
+  },
+  "tags": []
+}
