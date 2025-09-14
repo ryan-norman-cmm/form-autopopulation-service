@@ -82,6 +82,29 @@
         "command": "vitest --ui",
         "cwd": "apps/form-auto-population-service"
       }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "apps/form-auto-population-service/src/**/*.{ts,tsx}"
+        ]
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prettier --write \"apps/form-auto-population-service/**/*.{js,ts,json,md}\"",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "format:check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prettier --check \"apps/form-auto-population-service/**/*.{js,ts,json,md}\"",
+        "cwd": "{workspaceRoot}"
+      }
     }
   },
   "tags": []

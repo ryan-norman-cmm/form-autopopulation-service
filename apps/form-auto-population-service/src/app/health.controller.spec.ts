@@ -40,6 +40,8 @@ describe('HealthController', () => {
       // Clear environment variables for this test
       delete process.env.KAFKA_BOOTSTRAP_SERVERS;
       delete process.env.DATABASE_URL;
+      delete process.env.DB_HOST;
+      delete process.env.DB_PORT;
       delete process.env.FHIR_SERVER_URL;
       delete process.env.AIDBOX_URL;
 

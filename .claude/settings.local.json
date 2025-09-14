@@ -17,7 +17,10 @@
       "Bash(git commit:*)",
       "Bash(npx nx g:*)",
       "Bash(npx nx vite:test:*)",
-      "Bash(npx vitest run:*)"
+      "Bash(npx vitest run:*)",
+      "Bash(npx nx lint:*)",
+      "Bash(npx nx eslint:lint:*)",
+      "Bash(npx nx format:*)"
     ],
     "deny": [],
     "ask": []

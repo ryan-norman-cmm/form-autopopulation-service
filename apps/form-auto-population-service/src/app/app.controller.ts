@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 interface FormPopulationRequest {
   formId: string;
   patientId: string;
-  formData: Record<string, any>;
+  formData: Record<string, unknown>;
 }
 
 @Controller('api/forms')

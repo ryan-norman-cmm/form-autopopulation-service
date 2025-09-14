@@ -24,7 +24,9 @@ export class FormPopulationService {
   /**
    * Create FHIR QuestionnaireResponse from Wegovy AI output
    */
-  async createQuestionnaireResponse(event: FormPopulationCompletedEvent): Promise<any> {
+  async createQuestionnaireResponse(
+    event: FormPopulationCompletedEvent
+  ): Promise<unknown> {
     this.logger.log(
       `Creating QuestionnaireResponse for form: ${event.formId}, patient: ${event.patientId}`
     );
@@ -35,7 +37,10 @@ export class FormPopulationService {
       patientId: event.patientId,
       timestamp: event.timestamp,
     };
-    const questionnaireResponse = convertToQuestionnaireResponse(event.wegovyOutput, metadata);
+    const questionnaireResponse = convertToQuestionnaireResponse(
+      event.wegovyOutput,
+      metadata
+    );
 
     try {
       // Save to FHIR server
@@ -51,10 +56,11 @@ export class FormPopulationService {
       return savedResponse;
     } catch (error) {
       this.logger.error(
-        `Failed to create QuestionnaireResponse: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to create QuestionnaireResponse: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
       );
       throw error;
     }
   }
-
 }

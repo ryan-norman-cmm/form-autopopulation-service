@@ -17,6 +17,7 @@ async function bootstrap() {
   await app.listen(port);
 
   console.log(`🏥 Healthcare Events Service is running on port ${port}`);
+}
 
 bootstrap().catch((error) => {
   console.error('Failed to start Healthcare Events Service:', error);

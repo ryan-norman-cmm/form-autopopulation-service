@@ -124,7 +124,9 @@ describe('convertToQuestionnaireResponse', () => {
 
     const result = convertToQuestionnaireResponse(wegovyOutput, mockMetadata);
 
-    expect(result.item[0].answer).toEqual([{ valueString: 'Dr. Sarah Johnson' }]);
+    expect(result.item[0].answer).toEqual([
+      { valueString: 'Dr. Sarah Johnson' },
+    ]);
   });
 
   it('should include proper FHIR metadata', () => {
@@ -141,6 +143,8 @@ describe('convertToQuestionnaireResponse', () => {
     expect(result.meta.profile).toEqual([
       'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse',
     ]);
-    expect(result.meta.lastUpdated).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+    expect(result.meta.lastUpdated).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/
+    );
   });
 });

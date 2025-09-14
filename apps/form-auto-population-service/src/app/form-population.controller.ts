@@ -20,16 +20,23 @@ export class FormPopulationController {
   constructor(private readonly formPopulationService: FormPopulationService) {}
 
   @EventPattern('form.population.completed')
-  async handleFormPopulationCompleted(@Payload() payload: FormPopulationCompletedEvent) {
+  async handleFormPopulationCompleted(
+    @Payload() payload: FormPopulationCompletedEvent
+  ) {
     this.logger.log(
       `Received form population completed event for form: ${payload.formId}, patient: ${payload.patientId}`
     );
 
     try {
       await this.formPopulationService.createQuestionnaireResponse(payload);
-      this.logger.log(`Successfully created QuestionnaireResponse for form: ${payload.formId}`);
+      this.logger.log(
+        `Successfully created QuestionnaireResponse for form: ${payload.formId}`
+      );
     } catch (error) {
-      this.logger.error(`Failed to create QuestionnaireResponse for form: ${payload.formId}`, error);
+      this.logger.error(
+        `Failed to create QuestionnaireResponse for form: ${payload.formId}`,
+        error
+      );
       throw error;
     }
   }

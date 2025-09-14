@@ -62,6 +62,20 @@
         "cwd": "{workspaceRoot}"
       },
       "dependsOn": ["build"]
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prettier --write \"apps/healthcare-events/**/*.{js,ts,json,md}\"",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "format:check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prettier --check \"apps/healthcare-events/**/*.{js,ts,json,md}\"",
+        "cwd": "{workspaceRoot}"
+      }
     }
   },
   "tags": [],

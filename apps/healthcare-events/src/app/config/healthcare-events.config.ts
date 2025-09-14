@@ -148,7 +148,6 @@ export class HealthcareEventsConfig {
     );
   }
 
-
   /**
    * Get Kafka connection timeout in milliseconds
    */

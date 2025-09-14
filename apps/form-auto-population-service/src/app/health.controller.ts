@@ -31,7 +31,7 @@ export class HealthController {
 
         await admin.disconnect();
         kafkaStatus = hasFormTopics ? 'connected' : 'topics-missing';
-      } catch (error) {
+      } catch {
         kafkaStatus = 'disconnected';
       }
     } else {
@@ -47,7 +47,7 @@ export class HealthController {
         // In a real implementation, you would check your actual database connection
         // For now, we'll just mark it as configured
         databaseStatus = 'configured';
-      } catch (error) {
+      } catch {
         databaseStatus = 'disconnected';
       }
     } else {
@@ -67,7 +67,7 @@ export class HealthController {
 
         const isHealthy = response.status === 200;
         externalApiStatus = isHealthy ? 'connected' : 'unavailable';
-      } catch (error) {
+      } catch {
         externalApiStatus = 'disconnected';
       }
     } else {

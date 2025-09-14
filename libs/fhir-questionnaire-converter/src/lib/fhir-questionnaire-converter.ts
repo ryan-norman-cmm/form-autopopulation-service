@@ -29,7 +29,9 @@ export function convertToQuestionnaireResponse(
     authored: metadata.timestamp,
     item: items,
     meta: {
-      profile: ['http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse'],
+      profile: [
+        'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse',
+      ],
       lastUpdated: new Date().toISOString(),
     },
   };
