@@ -20,7 +20,9 @@
       "Bash(npx vitest run:*)",
       "Bash(npx nx lint:*)",
       "Bash(npx nx eslint:lint:*)",
-      "Bash(npx nx format:*)"
+      "Bash(npx nx format:*)",
+      "Bash(mv:*)",
+      "Bash(npx nx e2e:*)"
     ],
     "deny": [],
     "ask": []

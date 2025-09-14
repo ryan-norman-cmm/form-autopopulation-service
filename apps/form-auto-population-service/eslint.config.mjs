@@ -1,3 +1,4 @@
+import playwright from 'eslint-plugin-playwright';
 import js from '@eslint/js';
 import { fixupConfigRules } from '@eslint/compat';
 import tseslint from 'typescript-eslint';
