@@ -1,0 +1,19 @@
+{
+  "name": "fhir-questionnaire-converter",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/fhir-questionnaire-converter/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/fhir-questionnaire-converter",
+        "main": "libs/fhir-questionnaire-converter/src/index.ts",
+        "tsConfig": "libs/fhir-questionnaire-converter/tsconfig.lib.json",
+        "assets": ["libs/fhir-questionnaire-converter/*.md"]
+      }
+    }
+  }
+}

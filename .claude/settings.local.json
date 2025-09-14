@@ -13,7 +13,11 @@
       "Bash(rm:*)",
       "Bash(mkdir:*)",
       "Bash(git restore:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(git commit:*)",
+      "Bash(npx nx g:*)",
+      "Bash(npx nx vite:test:*)",
+      "Bash(npx vitest run:*)"
     ],
     "deny": [],
     "ask": []
