@@ -1,13 +1,21 @@
-# FHIR Clients Configuration (Minimal for healthcare-events migration)
-# The form-auto-population service doesn't need OAuth clients,
-# but we need this file to prevent bootstrap warnings
-
-environments:
-  default:
-    clients: []  # No OAuth clients needed for this migration
-
-  development:
-    clients: []
-
-  production:
-    clients: []
+# FHIR Clients Configuration for Form Auto-Population Service
+apiVersion: fhir.operator/v1
+kind: FhirClientConfig
+metadata:
+  name: form-auto-population-clients
+  namespace: default
+spec:
+  clients:
+    - name: form-auto-population-service
+      description: "OAuth2 client for form auto-population service with Questionnaire and QuestionnaireResponse access"
+      grantTypes: ["client_credentials"]
+      scopes: ["system/Patient.read", "system/Questionnaire.*", "system/QuestionnaireResponse.*"]
+      accessPolicies:
+        - name: questionnaire-access
+          description: "Full CRUD access to Questionnaire resources"
+          resourceType: "Questionnaire"
+          permissions: ["read", "create", "update", "delete"]
+        - name: questionnaireresponse-access
+          description: "Full CRUD access to QuestionnaireResponse resources"
+          resourceType: "QuestionnaireResponse"
+          permissions: ["read", "create", "update", "delete"]

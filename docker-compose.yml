@@ -229,7 +229,7 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       # FHIR Server Configuration
-      - FHIR_SERVER_BASE_URL=http://aidbox:8081
+      - FHIR_SERVER_BASE_URL=http://aidbox:8080
       - FHIR_SERVER_PROVIDER=aidbox
       - AIDBOX_CLIENT_ID=root
       - AIDBOX_CLIENT_SECRET=${AIDBOX_CLIENT_SECRET:-97QvlvxWLx}
@@ -240,8 +240,11 @@ services:
       - RESPONSE_KAFKA_TOPIC=form.populated
       # Bootstrap Configuration
       - BOOTSTRAP_ENABLED=true
-      - BOOTSTRAP_GENERATE_SECRETS=false
+      - BOOTSTRAP_GENERATE_SECRETS=true
+      - BOOTSTRAP_UPDATE_EXISTING=true
       - BOOTSTRAP_SUBSCRIPTION_TOPIC_CONFIG_PATH=/app/config/subscription-topics.yml
+      # Kubernetes Configuration (disable for Docker Compose)
+      - KUBERNETES_ENABLED=false
       # Logging
       - LOG_LEVEL=${LOG_LEVEL:-debug}
     volumes:
