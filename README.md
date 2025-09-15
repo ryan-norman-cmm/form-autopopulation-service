@@ -110,12 +110,10 @@ npx nx serve form-auto-population-service
 ```bash
 # Development
 npx nx serve form-auto-population-service    # Start form service
-npx nx serve healthcare-events               # Start healthcare events service
+docker compose up fhir-server-operator       # Start FHIR server operator
 npx nx build form-auto-population-service    # Build form service
-npx nx build healthcare-events               # Build healthcare events service
 npx nx build fhir-client                     # Build FHIR client library
 npx nx test form-auto-population-service     # Run form service tests
-npx nx test healthcare-events                # Run healthcare events tests
 npx nx test fhir-client                      # Run FHIR client tests
 
 # Infrastructure
