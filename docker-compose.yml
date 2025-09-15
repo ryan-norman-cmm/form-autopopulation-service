@@ -245,7 +245,6 @@ services:
       # Logging
       - LOG_LEVEL=${LOG_LEVEL:-debug}
     volumes:
-      - ./fhir-operator-config/fhir-operator.yml:/app/config/production.yml:ro
       - ./fhir-operator-config/clients.yml:/app/config/clients.yml:ro
       - ./fhir-operator-config/subscription-topics.yml:/app/config/subscription-topics.yml:ro
       - fhir_operator_data:/app/data
