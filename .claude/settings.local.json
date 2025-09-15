@@ -22,7 +22,9 @@
       "Bash(npx nx eslint:lint:*)",
       "Bash(npx nx format:*)",
       "Bash(mv:*)",
-      "Bash(npx nx e2e:*)"
+      "Bash(npx nx e2e:*)",
+      "Bash(chmod:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

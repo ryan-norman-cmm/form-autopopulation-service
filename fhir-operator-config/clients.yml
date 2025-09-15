@@ -1,0 +1,13 @@
+# FHIR Clients Configuration (Minimal for healthcare-events migration)
+# The form-auto-population service doesn't need OAuth clients,
+# but we need this file to prevent bootstrap warnings
+
+environments:
+  default:
+    clients: []  # No OAuth clients needed for this migration
+
+  development:
+    clients: []
+
+  production:
+    clients: []

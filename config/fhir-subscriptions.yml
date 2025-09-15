@@ -1,27 +1,27 @@
 subscriptions:
   - resourceType: Patient
     topicName: patient.updated
-    owner: 'form-auto-population-service'
+    owner: "form-auto-population-service"
     supportedInteractions:
       - create
       - update
-    description: 'Patient events for form auto-population'
-    kafkaTopic: 'form.population.requested'
+    description: "Patient events for form auto-population"
+    kafkaTopic: "form.population.requested"
 
   - resourceType: Questionnaire
     topicName: questionnaire.created
-    owner: 'form-auto-population-service'
+    owner: "form-auto-population-service"
     supportedInteractions:
       - create
-    description: 'New form templates for auto-population'
-    kafkaTopic: 'form.validation.requested'
+    description: "New form templates for auto-population"
+    kafkaTopic: "form.validation.requested"
 
   # Form population events
   - resourceType: QuestionnaireResponse
     topicName: form.populated
-    owner: 'form-auto-population-service'
+    owner: "form-auto-population-service"
     supportedInteractions:
       - create
       - update
-    description: 'Form population completion events'
-    kafkaTopic: 'form.populated'
+    description: "Form population completion events"
+    kafkaTopic: "form.populated"

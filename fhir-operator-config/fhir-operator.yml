@@ -1,0 +1,36 @@
+# FHIR Operator Configuration for Form Auto-Population Service
+# Replaces the healthcare-events service configuration
+
+app:
+  port: 3000  # Note: healthcare-events used 3002, but we'll use standard 3000
+  fhirServer:
+    provider: aidbox
+    baseUrl: ${FHIR_SERVER_BASE_URL:-http://aidbox:8081}
+    aidbox:
+      clientId: ${AIDBOX_CLIENT_ID}
+      clientSecret: ${AIDBOX_CLIENT_SECRET}
+      authType: basic
+
+controller:
+  logLevel: ${LOG_LEVEL:-debug}  # Match healthcare-events debug logging
+  reconcileInterval: ${RECONCILE_INTERVAL:-30000}  # 30 seconds for faster dev feedback
+
+kubernetes:
+  enabled: false
+  inCluster: false
+
+persistence:
+  type: file
+  file: /app/data/clients.json
+
+monitoring:
+  healthCheckInterval: 30000
+  metricsEnabled: false
+
+bootstrap:
+  enabled: ${BOOTSTRAP_ENABLED:-true}
+  subscriptionTopicConfig:
+    path: ${BOOTSTRAP_SUBSCRIPTION_TOPIC_CONFIG_PATH:-/app/config/subscription-topics.yml}
+    environment: ${NODE_ENV:-development}
+  secrets:
+    generateSecrets: ${BOOTSTRAP_GENERATE_SECRETS:-false}

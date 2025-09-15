@@ -2,7 +2,36 @@
 # Kafka, Aidbox FHIR Server, and supporting services for form auto-population
 # Run form-auto-population-service locally via: npx nx serve form-auto-population-service
 
-# Configs section removed - FHIR operator now uses file-based configuration
+configs:
+  fhir-subscriptions:
+    content: |
+      subscriptions:
+        - resourceType: Patient
+          topicName: patient.updated
+          owner: "form-auto-population-service"
+          supportedInteractions:
+            - create
+            - update
+          description: "Patient events for form auto-population"
+          kafkaTopic: "form.population.requested"
+
+        - resourceType: Questionnaire
+          topicName: questionnaire.created
+          owner: "form-auto-population-service"
+          supportedInteractions:
+            - create
+          description: "New form templates for auto-population"
+          kafkaTopic: "form.validation.requested"
+
+        # Form population events
+        - resourceType: QuestionnaireResponse
+          topicName: form.populated
+          owner: "form-auto-population-service"
+          supportedInteractions:
+            - create
+            - update
+          description: "Form population completion events"
+          kafkaTopic: "form.populated"
 
 networks:
   form-network:
@@ -15,8 +44,6 @@ volumes:
   postgres_data_aidbox:
   kafka_data:
   zookeeper_data:
-  fhir_operator_data:
-  fhir_operator_secrets:
 
 services:
   # Aidbox PostgreSQL Database
@@ -216,40 +243,42 @@ services:
       retries: 3
       start_period: 40s
 
-  # FHIR Server Operator - manages FHIR subscriptions and OAuth clients
-  fhir-server-operator:
-    image: fhir-server-operator:latest
-    container_name: fhir-server-operator
-    working_dir: /app
-    entrypoint: ["node", "dist/main.js"]
+  # Healthcare Events Service - manages FHIR subscriptions
+  healthcare-events:
+    build:
+      context: .
+      dockerfile: apps/healthcare-events/Dockerfile
+      target: development
+    container_name: healthcare-events
     ports:
-      - '3002:3000'  # Map container port 3000 to host port 3002 for compatibility
+      - '3002:3002'
+      - '9231:9229' # Debug port
     env_file:
       - .env
     environment:
       - NODE_ENV=${NODE_ENV:-development}
-      # FHIR Server Configuration
-      - FHIR_SERVER_BASE_URL=http://aidbox:8081
-      - FHIR_SERVER_PROVIDER=aidbox
-      - AIDBOX_CLIENT_ID=root
-      - AIDBOX_CLIENT_SECRET=${AIDBOX_CLIENT_SECRET:-97QvlvxWLx}
-      # Kafka Configuration
+      - PORT=3002
+      # FHIR - Override for container networking
+      - FHIR_CLIENT_ID=${FHIR_CLIENT_ID}
+      - FHIR_CLIENT_SECRET=${FHIR_CLIENT_SECRET}
+      - AIDBOX_URL=http://aidbox:8080
+      # Kafka - Override for container networking
+      - KAFKA_BROKERS=kafka:9092
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - PATIENT_KAFKA_TOPIC=form.population.requested
-      - QUESTIONNAIRE_KAFKA_TOPIC=form.validation.requested
-      - RESPONSE_KAFKA_TOPIC=form.populated
-      # Bootstrap Configuration
-      - BOOTSTRAP_ENABLED=true
-      - BOOTSTRAP_GENERATE_SECRETS=false
-      - BOOTSTRAP_SUBSCRIPTION_TOPIC_CONFIG_PATH=/app/config/subscription-topics.yml
-      # Logging
-      - LOG_LEVEL=${LOG_LEVEL:-debug}
+      - KAFKA_CONNECTION_TIMEOUT=${KAFKA_CONNECTION_TIMEOUT}
+      - KAFKA_REQUEST_TIMEOUT=${KAFKA_REQUEST_TIMEOUT}
+      # Configuration - Using inline config from Docker Compose
+      - FHIR_SUBSCRIPTIONS_CONFIG_PATH=/app/config/fhir-subscriptions.yml
+      # Development settings
+      - DEBUG_MODE=true
+      - DEBUG_PORT=9229
     volumes:
-      - ./fhir-operator-config/fhir-operator.yml:/app/config/production.yml:ro
-      - ./fhir-operator-config/clients.yml:/app/config/clients.yml:ro
-      - ./fhir-operator-config/subscription-topics.yml:/app/config/subscription-topics.yml:ro
-      - fhir_operator_data:/app/data
-      - fhir_operator_secrets:/run/secrets/clients
+      - .:/app
+      - /app/node_modules
+    configs:
+      - source: fhir-subscriptions
+        target: /app/config/fhir-subscriptions.yml
+        mode: 0444
     depends_on:
       postgres-aidbox:
         condition: service_healthy
@@ -262,7 +291,7 @@ services:
         ipv4_address: 172.25.0.13
     restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'node', '-e', "require('http').request('http://localhost:3000/health/live', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1)).end()"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3002/health']
       interval: 30s
       timeout: 10s
       retries: 3
