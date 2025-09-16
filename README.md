@@ -46,13 +46,48 @@ A NestJS microservice for automated form population using FHIR patient data, bui
 
 ### 2. Environment Setup
 
-```bash
+````bash
 # Copy environment template
 cp .env.example .env
 
 # Edit .env and add your Aidbox license key:
 # AIDBOX_LICENSE_KEY=your_aidbox_dev_license_key_here
-```
+
+## Security Configuration
+
+For security, this project uses environment variables and GitHub secrets to manage sensitive data. **NEVER commit real passwords, tokens, or API keys to version control.**
+
+### Required Environment Variables
+
+Copy `.env.example` to `.env` and configure the following sensitive values:
+
+```bash
+# Core Authentication
+AIDBOX_CLIENT_SECRET=your_aidbox_client_secret_here
+FHIR_CLIENT_SECRET=your_fhir_client_secret_here
+AIDBOX_LICENSE_KEY=your_aidbox_dev_license_key_here
+
+# Database Passwords
+POSTGRES_PASSWORD=your_postgres_password_here
+FORMS_DB_PASSWORD=your_forms_password_here
+AIDBOX_ADMIN_PASSWORD=your_admin_password_here
+````
+
+### GitHub Secrets for CI/CD
+
+The following secrets must be configured in your GitHub repository settings:
+
+1. **POSTGRES_AIDBOX_PASSWORD** - PostgreSQL password for Aidbox database in CI
+2. **POSTGRES_FORMS_PASSWORD** - PostgreSQL password for forms database in CI
+3. **CODECOV_TOKEN** - Token for code coverage reporting (optional)
+
+To add these secrets:
+
+1. Go to your repository → Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Add each secret with the corresponding value
+
+````
 
 **Getting Aidbox License (Required)**:
 
@@ -69,7 +104,7 @@ docker compose up -d
 
 # Verify services are healthy
 docker compose ps
-```
+````
 
 ### 4. Install Dependencies & Start Service
 
