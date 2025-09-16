@@ -232,7 +232,10 @@ async getResource<T extends keyof ResourceTypeMap>(
 
 ```typescript
 // Get a Communication resource
-const communication = await fhirService.getResource('Communication', 'comm-123');
+const communication = await fhirService.getResource(
+  'Communication',
+  'comm-123'
+);
 ```
 
 #### Update Any FHIR Resource
@@ -283,16 +286,19 @@ async createAidboxResource<T extends AidboxResource>(
 
 ```typescript
 // Create an AidboxSubscriptionTopic
-const subscriptionTopic = await fhirService.createAidboxResource('AidboxSubscriptionTopic', {
-  status: 'active',
-  url: 'http://example.com/subscription/topic',
-  trigger: [
-    {
-      resource: 'Communication',
-      supportedInteraction: ['create'],
-    },
-  ],
-});
+const subscriptionTopic = await fhirService.createAidboxResource(
+  'AidboxSubscriptionTopic',
+  {
+    status: 'active',
+    url: 'http://example.com/subscription/topic',
+    trigger: [
+      {
+        resource: 'Communication',
+        supportedInteraction: ['create'],
+      },
+    ],
+  }
+);
 ```
 
 #### Put Aidbox Resource
@@ -307,14 +313,18 @@ async putAidboxResource<T extends AidboxResource>(
 
 ```typescript
 // Create or update an AidboxTopicDestination
-const destination = await fhirService.putAidboxResource('AidboxTopicDestination', 'dest-123', {
-  kind: 'kafka-at-least-once',
-  topic: 'http://example.com/subscription/topic',
-  parameter: [
-    { name: 'kafkaTopic', valueString: 'fhir.events' },
-    { name: 'bootstrapServers', valueString: 'kafka:9092' },
-  ],
-});
+const destination = await fhirService.putAidboxResource(
+  'AidboxTopicDestination',
+  'dest-123',
+  {
+    kind: 'kafka-at-least-once',
+    topic: 'http://example.com/subscription/topic',
+    parameter: [
+      { name: 'kafkaTopic', valueString: 'fhir.events' },
+      { name: 'bootstrapServers', valueString: 'kafka:9092' },
+    ],
+  }
+);
 ```
 
 ### Advanced Operations
@@ -376,7 +386,9 @@ All error messages are sanitized to prevent sensitive data leakage:
 ```typescript
 // Internal implementation sanitizes errors
 throw new Error(
-  `Failed to retrieve patient resource: ${error instanceof Error ? error.message : 'Unknown error'}`
+  `Failed to retrieve patient resource: ${
+    error instanceof Error ? error.message : 'Unknown error'
+  }`
   // Patient ID and other sensitive data are NOT included
 );
 ```
@@ -461,7 +473,8 @@ class CommunicationManager {
         {
           coding: [
             {
-              system: 'http://terminology.hl7.org/CodeSystem/v3-ParticipationMode',
+              system:
+                'http://terminology.hl7.org/CodeSystem/v3-ParticipationMode',
               code: 'WRITTEN',
               display: 'written',
             },
@@ -477,9 +490,13 @@ class CommunicationManager {
   }
 
   async updateCommunicationStatus(communicationId: string, status: string) {
-    return await this.fhirService.updateResource('Communication', communicationId, {
-      status: status as any, // Cast to satisfy FHIR type requirements
-    });
+    return await this.fhirService.updateResource(
+      'Communication',
+      communicationId,
+      {
+        status: status as any, // Cast to satisfy FHIR type requirements
+      }
+    );
   }
 }
 ```
@@ -496,27 +513,33 @@ class SubscriptionManager {
 
   async createCommunicationSubscription(topicName: string, kafkaTopic: string) {
     // Create subscription topic
-    const subscriptionTopic = await this.fhirService.createAidboxResource('AidboxSubscriptionTopic', {
-      id: topicName,
-      status: 'active',
-      url: `http://aidbox.app/subscriptions/${topicName}`,
-      trigger: [
-        {
-          resource: 'Communication',
-          supportedInteraction: ['create', 'update'],
-        },
-      ],
-    });
+    const subscriptionTopic = await this.fhirService.createAidboxResource(
+      'AidboxSubscriptionTopic',
+      {
+        id: topicName,
+        status: 'active',
+        url: `http://aidbox.app/subscriptions/${topicName}`,
+        trigger: [
+          {
+            resource: 'Communication',
+            supportedInteraction: ['create', 'update'],
+          },
+        ],
+      }
+    );
 
     // Create topic destination
-    const destination = await this.fhirService.createAidboxResource('AidboxTopicDestination', {
-      kind: 'kafka-at-least-once',
-      topic: subscriptionTopic.url,
-      parameter: [
-        { name: 'kafkaTopic', valueString: kafkaTopic },
-        { name: 'bootstrapServers', valueString: 'kafka:9092' },
-      ],
-    });
+    const destination = await this.fhirService.createAidboxResource(
+      'AidboxTopicDestination',
+      {
+        kind: 'kafka-at-least-once',
+        topic: subscriptionTopic.url,
+        parameter: [
+          { name: 'kafkaTopic', valueString: kafkaTopic },
+          { name: 'bootstrapServers', valueString: 'kafka:9092' },
+        ],
+      }
+    );
 
     return { subscriptionTopic, destination };
   }
@@ -595,9 +618,13 @@ describe('FhirService', () => {
 
   it('should handle errors with healthcare compliance', async () => {
     const mockClient = fhirService.getClient();
-    vi.mocked(mockClient.resource.get).mockRejectedValue(new Error('Not found'));
+    vi.mocked(mockClient.resource.get).mockRejectedValue(
+      new Error('Not found')
+    );
 
-    await expect(fhirService.getPatient('test-123')).rejects.toThrow('Failed to retrieve patient resource: Not found');
+    await expect(fhirService.getPatient('test-123')).rejects.toThrow(
+      'Failed to retrieve patient resource: Not found'
+    );
   });
 });
 ```

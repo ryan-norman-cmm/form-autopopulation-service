@@ -27,7 +27,7 @@ export function formatAnswer(
   // Handle potential coded values for common patterns
   const stringAnswer = answer.toString();
   const lowerAnswer = stringAnswer.toLowerCase();
-  
+
   // Auto-detect gender values and format as coding
   if (['male', 'female', 'other', 'unknown'].includes(lowerAnswer)) {
     return [

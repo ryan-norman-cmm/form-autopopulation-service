@@ -1,5 +1,9 @@
 import { convertToQuestionnaireResponse } from './fhir-questionnaire-converter';
-import { QuestionnaireOutput, QuestionnaireResponseMetadata, WegovyOutput } from './types';
+import {
+  QuestionnaireOutput,
+  QuestionnaireResponseMetadata,
+  WegovyOutput,
+} from './types';
 
 describe('convertToQuestionnaireResponse', () => {
   const mockMetadata: QuestionnaireResponseMetadata = {
@@ -22,7 +26,10 @@ describe('convertToQuestionnaireResponse', () => {
       },
     ];
 
-    const result = convertToQuestionnaireResponse(questionnaireOutput, mockMetadata);
+    const result = convertToQuestionnaireResponse(
+      questionnaireOutput,
+      mockMetadata
+    );
 
     expect(result.resourceType).toBe('QuestionnaireResponse');
     expect(result.status).toBe('completed');
@@ -41,7 +48,10 @@ describe('convertToQuestionnaireResponse', () => {
       },
     ];
 
-    const result = convertToQuestionnaireResponse(questionnaireOutput, mockMetadata);
+    const result = convertToQuestionnaireResponse(
+      questionnaireOutput,
+      mockMetadata
+    );
 
     expect(result.item[0].answer).toEqual([{ valueInteger: 45 }]);
   });
@@ -55,7 +65,10 @@ describe('convertToQuestionnaireResponse', () => {
       },
     ];
 
-    const result = convertToQuestionnaireResponse(questionnaireOutput, mockMetadata);
+    const result = convertToQuestionnaireResponse(
+      questionnaireOutput,
+      mockMetadata
+    );
 
     expect(result.item[0].answer).toEqual([{ valueDecimal: 32.5 }]);
   });
@@ -69,7 +82,10 @@ describe('convertToQuestionnaireResponse', () => {
       },
     ];
 
-    const result = convertToQuestionnaireResponse(questionnaireOutput, mockMetadata);
+    const result = convertToQuestionnaireResponse(
+      questionnaireOutput,
+      mockMetadata
+    );
 
     expect(result.item[0].answer).toEqual([{ valueBoolean: true }]);
   });
@@ -83,7 +99,10 @@ describe('convertToQuestionnaireResponse', () => {
       },
     ];
 
-    const result = convertToQuestionnaireResponse(questionnaireOutput, mockMetadata);
+    const result = convertToQuestionnaireResponse(
+      questionnaireOutput,
+      mockMetadata
+    );
 
     expect(result.item[0].answer).toEqual([
       { valueString: 'Type 2 diabetes mellitus' },
@@ -100,7 +119,10 @@ describe('convertToQuestionnaireResponse', () => {
       },
     ];
 
-    const result = convertToQuestionnaireResponse(questionnaireOutput, mockMetadata);
+    const result = convertToQuestionnaireResponse(
+      questionnaireOutput,
+      mockMetadata
+    );
 
     expect(result.item[0].answer).toEqual([
       {
@@ -122,7 +144,10 @@ describe('convertToQuestionnaireResponse', () => {
       },
     ];
 
-    const result = convertToQuestionnaireResponse(questionnaireOutput, mockMetadata);
+    const result = convertToQuestionnaireResponse(
+      questionnaireOutput,
+      mockMetadata
+    );
 
     expect(result.item[0].answer).toEqual([
       { valueString: 'Dr. Sarah Johnson' },
@@ -138,7 +163,10 @@ describe('convertToQuestionnaireResponse', () => {
       },
     ];
 
-    const result = convertToQuestionnaireResponse(questionnaireOutput, mockMetadata);
+    const result = convertToQuestionnaireResponse(
+      questionnaireOutput,
+      mockMetadata
+    );
 
     expect(result.meta.profile).toEqual([
       'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse',
@@ -187,7 +215,9 @@ describe('convertToQuestionnaireResponse', () => {
 
     expect(result.item).toHaveLength(3);
     expect(result.item[0].answer).toEqual([{ valueInteger: 8 }]);
-    expect(result.item[1].answer).toEqual([{ valueString: 'Service was excellent' }]);
+    expect(result.item[1].answer).toEqual([
+      { valueString: 'Service was excellent' },
+    ]);
     expect(result.item[2].answer).toEqual([{ valueBoolean: true }]);
   });
 
@@ -210,12 +240,17 @@ describe('convertToQuestionnaireResponse', () => {
       },
     ];
 
-    const result = convertToQuestionnaireResponse(mentalHealthOutput, mockMetadata);
+    const result = convertToQuestionnaireResponse(
+      mentalHealthOutput,
+      mockMetadata
+    );
 
     expect(result.item).toHaveLength(3);
     expect(result.item[0].answer).toEqual([{ valueInteger: 6 }]);
     expect(result.item[1].answer).toEqual([{ valueString: 'Poor' }]);
     expect(result.item[2].answer).toHaveLength(3);
-    expect(result.item[2].answer[0]).toEqual({ valueString: 'Difficulty concentrating' });
+    expect(result.item[2].answer[0]).toEqual({
+      valueString: 'Difficulty concentrating',
+    });
   });
 });

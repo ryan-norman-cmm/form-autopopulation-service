@@ -14,11 +14,13 @@ export function convertToQuestionnaireResponse(
   questionnaireOutput: QuestionnaireOutput,
   metadata: QuestionnaireResponseMetadata
 ): FhirQuestionnaireResponse {
-  const items: FhirQuestionnaireResponseItem[] = questionnaireOutput.map((item) => ({
-    linkId: item.question_id,
-    text: item.question_text,
-    answer: formatAnswer(item.answer),
-  }));
+  const items: FhirQuestionnaireResponseItem[] = questionnaireOutput.map(
+    (item) => ({
+      linkId: item.question_id,
+      text: item.question_text,
+      answer: formatAnswer(item.answer),
+    })
+  );
 
   return {
     resourceType: 'QuestionnaireResponse',

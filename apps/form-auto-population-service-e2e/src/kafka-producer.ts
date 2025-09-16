@@ -70,6 +70,8 @@ export class KafkaProducer {
     };
 
     await this.producer.send(message);
-    console.log(`📨 Published form.population.completed event for ${event.formId}/${event.patientId}`);
+    console.log(
+      `📨 Published form.population.completed event for ${event.formId}/${event.patientId}`
+    );
   }
 }

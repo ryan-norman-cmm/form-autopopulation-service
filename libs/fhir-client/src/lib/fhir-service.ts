@@ -31,7 +31,7 @@ export class FhirService {
   private clientSecret: string;
   private useOAuth: boolean;
   private accessToken: string | null = null;
-  private tokenExpiresAt: number = 0;
+  private tokenExpiresAt = 0;
 
   constructor(config: FhirServiceConfig) {
     this.baseUrl = config.baseUrl;
@@ -71,7 +71,7 @@ export class FhirService {
     const now = Date.now();
 
     // Return cached token if still valid (with 30 second buffer)
-    if (this.accessToken && now < (this.tokenExpiresAt - 30000)) {
+    if (this.accessToken && now < this.tokenExpiresAt - 30000) {
       return this.accessToken;
     }
 
@@ -80,23 +80,34 @@ export class FhirService {
       const authBaseUrl = this.baseUrl.replace('/fhir', '');
       const tokenUrl = `${authBaseUrl}/auth/token`;
 
-      const response = await axios.post<TokenResponse>(tokenUrl, {
-        grant_type: 'client_credentials',
-        client_id: this.clientId,
-        client_secret: this.clientSecret,
-      }, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+      const response = await axios.post<TokenResponse>(
+        tokenUrl,
+        {
+          grant_type: 'client_credentials',
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
         },
-        transformRequest: [(data) => {
-          return Object.keys(data)
-            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
-            .join('&');
-        }],
-      });
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          transformRequest: [
+            (data) => {
+              return Object.keys(data)
+                .map(
+                  (key) =>
+                    `${encodeURIComponent(key)}=${encodeURIComponent(
+                      data[key]
+                    )}`
+                )
+                .join('&');
+            },
+          ],
+        }
+      );
 
       this.accessToken = response.data.access_token;
-      this.tokenExpiresAt = now + (response.data.expires_in * 1000);
+      this.tokenExpiresAt = now + response.data.expires_in * 1000;
 
       return this.accessToken;
     } catch (error) {
@@ -111,20 +122,26 @@ export class FhirService {
   /**
    * Make authenticated HTTP request with OAuth2 Bearer token
    */
-  private async makeAuthenticatedRequest<T>(method: string, url: string, data?: unknown): Promise<T> {
+  private async makeAuthenticatedRequest<T>(
+    method: string,
+    url: string,
+    data?: unknown
+  ): Promise<T> {
     if (!this.useOAuth) {
       throw new Error('This method requires OAuth2 to be enabled');
     }
 
     const token = await this.getAccessToken();
-    const fullUrl = url.startsWith('http') ? url : `${this.baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+    const fullUrl = url.startsWith('http')
+      ? url
+      : `${this.baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
 
     const response = await axios({
       method: method.toLowerCase() as any,
       url: fullUrl,
       data,
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });
@@ -138,7 +155,10 @@ export class FhirService {
   async getPatient(id: string): Promise<Patient> {
     try {
       if (this.useOAuth) {
-        return await this.makeAuthenticatedRequest<Patient>('GET', `/Patient/${id}`);
+        return await this.makeAuthenticatedRequest<Patient>(
+          'GET',
+          `/Patient/${id}`
+        );
       } else {
         return await this.client.resource.get('Patient', id);
       }
@@ -257,7 +277,11 @@ export class FhirService {
       };
 
       if (this.useOAuth) {
-        return await this.makeAuthenticatedRequest<ResourceTypeMap[T]>('POST', `/${resourceType}`, resourceWithType);
+        return await this.makeAuthenticatedRequest<ResourceTypeMap[T]>(
+          'POST',
+          `/${resourceType}`,
+          resourceWithType
+        );
       } else {
         return (await this.client.resource.create(
           resourceType,

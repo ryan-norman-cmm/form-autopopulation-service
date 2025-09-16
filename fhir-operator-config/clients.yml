@@ -7,15 +7,20 @@ metadata:
 spec:
   clients:
     - name: form-auto-population-service
-      description: "OAuth2 client for form auto-population service with Questionnaire and QuestionnaireResponse access"
-      grantTypes: ["client_credentials"]
-      scopes: ["system/Patient.read", "system/Questionnaire.*", "system/QuestionnaireResponse.*"]
+      description: 'OAuth2 client for form auto-population service with Questionnaire and QuestionnaireResponse access'
+      grantTypes: ['client_credentials']
+      scopes:
+        [
+          'system/Patient.read',
+          'system/Questionnaire.*',
+          'system/QuestionnaireResponse.*',
+        ]
       accessPolicies:
         - name: questionnaire-access
-          description: "Full CRUD access to Questionnaire resources"
-          resourceType: "Questionnaire"
-          permissions: ["read", "create", "update", "delete"]
+          description: 'Full CRUD access to Questionnaire resources'
+          resourceType: 'Questionnaire'
+          permissions: ['read', 'create', 'update', 'delete']
         - name: questionnaireresponse-access
-          description: "Full CRUD access to QuestionnaireResponse resources"
-          resourceType: "QuestionnaireResponse"
-          permissions: ["read", "create", "update", "delete"]
+          description: 'Full CRUD access to QuestionnaireResponse resources'
+          resourceType: 'QuestionnaireResponse'
+          permissions: ['read', 'create', 'update', 'delete']
