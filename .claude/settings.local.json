@@ -35,7 +35,9 @@
       "Bash(FHIR_SERVER_URL=http://localhost:8081 FHIR_CLIENT_ID=form-auto-population-service FHIR_CLIENT_SECRET=ihEFkJ3xOgFw5y1qJyEwVcES15m2ztNFxAw6MGL+9+c npx nx serve form-auto-population-service)",
       "Bash(git checkout:*)",
       "Bash(git pull:*)",
-      "Bash(nx run-many:*)"
+      "Bash(nx run-many:*)",
+      "Read(//Users/rnorman/Projects/fhir-mod-demo/**)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

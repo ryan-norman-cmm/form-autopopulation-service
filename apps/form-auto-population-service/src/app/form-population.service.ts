@@ -4,7 +4,7 @@ import {
   convertToQuestionnaireResponse,
   QuestionnaireOutput,
   QuestionnaireResponseMetadata,
-  // Backward compatibility 
+  // Backward compatibility
   WegovyOutput,
 } from '@form-auto-population/fhir-questionnaire-converter';
 

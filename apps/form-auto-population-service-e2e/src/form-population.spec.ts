@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { WegovyOutput, convertToQuestionnaireResponse } from '@form-auto-population/fhir-questionnaire-converter';
+import {
+  WegovyOutput,
+  convertToQuestionnaireResponse,
+} from '@form-auto-population/fhir-questionnaire-converter';
 import express from 'express';
 import { Server } from 'http';
 
@@ -40,7 +43,7 @@ test.beforeAll(async () => {
   // Start mock FHIR server
   const app = express();
   app.use(express.json());
-  
+
   // Mock FHIR endpoint for creating QuestionnaireResponse
   app.post('/QuestionnaireResponse', (req, res) => {
     const resource = req.body;
@@ -48,20 +51,20 @@ test.beforeAll(async () => {
     createdResources.push(resource);
     res.status(201).json(resource);
   });
-  
+
   // Endpoint to retrieve created resources for testing
   app.get('/QuestionnaireResponse', (req, res) => {
-    res.json({ 
+    res.json({
       resourceType: 'Bundle',
-      entry: createdResources.map(r => ({ resource: r })) 
+      entry: createdResources.map((r) => ({ resource: r })),
     });
   });
-  
+
   // Health check
   app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
   });
-  
+
   // Use port 0 to get an available port automatically
   mockFhirServer = app.listen(0);
   serverPort = (mockFhirServer.address() as any)?.port;
@@ -79,7 +82,10 @@ test.beforeEach(async () => {
   createdResources = [];
 });
 
-test('Form auto-population service converts Wegovy data to FHIR QuestionnaireResponse', async ({ page, request }) => {
+test('Form auto-population service converts Wegovy data to FHIR QuestionnaireResponse', async ({
+  page,
+  request,
+}) => {
   // Wait for mock FHIR server to be ready
   await expect(async () => {
     const response = await request.get(`http://localhost:${serverPort}/health`);
@@ -96,7 +102,7 @@ test('Form auto-population service converts Wegovy data to FHIR QuestionnaireRes
 
   // The FormPopulationService.createQuestionnaireResponse method should be called
   // In a real E2E test, we would publish a Kafka event and verify the result
-  
+
   // For this demonstration, we'll verify the conversion logic works by:
   // 1. Using the fhir-questionnaire-converter library directly
   // 2. Posting the result to our mock FHIR server
@@ -110,18 +116,24 @@ test('Form auto-population service converts Wegovy data to FHIR QuestionnaireRes
   };
 
   // Use the converter function from the static import
-  
-  const questionnaireResponse = convertToQuestionnaireResponse(testEvent.wegovyOutput, {
-    formId: testEvent.formId,
-    patientId: testEvent.patientId,
-    timestamp: testEvent.timestamp,
-  });
+
+  const questionnaireResponse = convertToQuestionnaireResponse(
+    testEvent.wegovyOutput,
+    {
+      formId: testEvent.formId,
+      patientId: testEvent.patientId,
+      timestamp: testEvent.timestamp,
+    }
+  );
 
   // Post the converted response to our mock FHIR server
-  const fhirResponse = await request.post(`http://localhost:${serverPort}/QuestionnaireResponse`, {
-    data: questionnaireResponse
-  });
-  
+  const fhirResponse = await request.post(
+    `http://localhost:${serverPort}/QuestionnaireResponse`,
+    {
+      data: questionnaireResponse,
+    }
+  );
+
   expect(fhirResponse.ok()).toBeTruthy();
   const createdResource = await fhirResponse.json();
 
@@ -136,32 +148,50 @@ test('Form auto-population service converts Wegovy data to FHIR QuestionnaireRes
   expect(createdResource.item).toHaveLength(5);
 
   // Verify specific data type conversions
-  const ageItem = createdResource.item.find((item: any) => item.linkId === 'patient-age');
+  const ageItem = createdResource.item.find(
+    (item: any) => item.linkId === 'patient-age'
+  );
   expect(ageItem.answer[0].valueInteger).toBe(45);
 
-  const genderItem = createdResource.item.find((item: any) => item.linkId === 'patient-gender');
+  const genderItem = createdResource.item.find(
+    (item: any) => item.linkId === 'patient-gender'
+  );
   expect(genderItem.answer[0].valueCoding.code).toBe('female');
-  expect(genderItem.answer[0].valueCoding.system).toBe('http://hl7.org/fhir/administrative-gender');
+  expect(genderItem.answer[0].valueCoding.system).toBe(
+    'http://hl7.org/fhir/administrative-gender'
+  );
 
-  const bmiItem = createdResource.item.find((item: any) => item.linkId === 'current-bmi');
+  const bmiItem = createdResource.item.find(
+    (item: any) => item.linkId === 'current-bmi'
+  );
   expect(bmiItem.answer[0].valueDecimal).toBe(32.5);
 
-  const criteriaItem = createdResource.item.find((item: any) => item.linkId === 'bmi-criteria');
+  const criteriaItem = createdResource.item.find(
+    (item: any) => item.linkId === 'bmi-criteria'
+  );
   expect(criteriaItem.answer[0].valueBoolean).toBe(true);
 
-  const comorbiditiesItem = createdResource.item.find((item: any) => item.linkId === 'weight-related-comorbidities');
+  const comorbiditiesItem = createdResource.item.find(
+    (item: any) => item.linkId === 'weight-related-comorbidities'
+  );
   expect(comorbiditiesItem.answer).toHaveLength(2);
-  expect(comorbiditiesItem.answer[0].valueString).toBe('Type 2 diabetes mellitus');
+  expect(comorbiditiesItem.answer[0].valueString).toBe(
+    'Type 2 diabetes mellitus'
+  );
   expect(comorbiditiesItem.answer[1].valueString).toBe('Hypertension');
 
   // Verify FHIR metadata
   expect(createdResource.meta.profile).toEqual([
-    'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse'
+    'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse',
   ]);
-  expect(createdResource.meta.lastUpdated).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+  expect(createdResource.meta.lastUpdated).toMatch(
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/
+  );
 
   console.log('✅ Form auto-population to FHIR conversion test passed!');
-  console.log(`📋 Created QuestionnaireResponse with ${createdResource.item.length} items`);
+  console.log(
+    `📋 Created QuestionnaireResponse with ${createdResource.item.length} items`
+  );
   console.log(`👤 Patient: ${createdResource.subject.reference}`);
   console.log(`📝 Form: ${createdResource.questionnaire}`);
 });

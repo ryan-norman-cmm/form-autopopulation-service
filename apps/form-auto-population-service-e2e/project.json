@@ -15,7 +15,9 @@
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["apps/form-auto-population-service-e2e/**/*.{ts,tsx,js,jsx}"]
+        "lintFilePatterns": [
+          "apps/form-auto-population-service-e2e/**/*.{ts,tsx,js,jsx}"
+        ]
       }
     }
   },

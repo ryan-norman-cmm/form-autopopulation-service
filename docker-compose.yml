@@ -221,9 +221,9 @@ services:
     image: fhir-server-operator:latest
     container_name: fhir-server-operator
     working_dir: /app
-    entrypoint: ["node", "dist/main.js"]
+    entrypoint: ['node', 'dist/main.js']
     ports:
-      - '3002:3000'  # Map container port 3000 to host port 3002 for compatibility
+      - '3002:3000' # Map container port 3000 to host port 3002 for compatibility
     env_file:
       - .env
     environment:
@@ -264,7 +264,13 @@ services:
         ipv4_address: 172.25.0.13
     restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'node', '-e', "require('http').request('http://localhost:3000/health/live', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1)).end()"]
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "require('http').request('http://localhost:3000/health/live', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1)).end()",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -59,10 +59,17 @@ export class AppController {
     }
 
     try {
-      const questionnaire = await this.fhirService.getResource('Questionnaire', formId);
+      const questionnaire = await this.fhirService.getResource(
+        'Questionnaire',
+        formId
+      );
       return questionnaire;
     } catch (error) {
-      throw new Error(`Failed to retrieve questionnaire ${formId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to retrieve questionnaire ${formId}: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
     }
   }
 
@@ -79,25 +86,32 @@ export class AppController {
           linkId: '1',
           text: 'What is your name?',
           type: 'string' as const,
-          required: true
+          required: true,
         },
         {
-          linkId: '2', 
+          linkId: '2',
           text: 'What is your age?',
           type: 'integer' as const,
-          required: false
-        }
-      ]
+          required: false,
+        },
+      ],
     };
 
     try {
-      const result = await this.fhirService.createResource('Questionnaire', testQuestionnaire);
+      const result = await this.fhirService.createResource(
+        'Questionnaire',
+        testQuestionnaire
+      );
       return {
         message: 'Questionnaire created successfully',
-        resource: result
+        resource: result,
       };
     } catch (error) {
-      throw new Error(`Failed to create questionnaire: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to create questionnaire: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
     }
   }
 }

@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FormPopulationService } from './form-population.service';
-import { QuestionnaireOutput, WegovyOutput } from '@form-auto-population/fhir-questionnaire-converter';
+import {
+  QuestionnaireOutput,
+  WegovyOutput,
+} from '@form-auto-population/fhir-questionnaire-converter';
 
 describe('FormPopulationService', () => {
   let service: FormPopulationService;

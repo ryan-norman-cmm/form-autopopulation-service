@@ -6,53 +6,53 @@ environments:
     subscriptionTopics:
       # Patient events for form population
       - name: patient-updated
-        description: "Patient resource changes for form auto-population"
+        description: 'Patient resource changes for form auto-population'
         resourceType: Patient
         criteria:
-          - "Patient?_type=Patient"
+          - 'Patient?_type=Patient'
         eventTypes:
           - create
           - update
         destinations:
           - type: kafka
             brokers:
-              - "${KAFKA_BOOTSTRAP_SERVERS:-localhost:9094}"
-            topic: "${PATIENT_KAFKA_TOPIC:-form.population.requested}"
+              - '${KAFKA_BOOTSTRAP_SERVERS:-localhost:9094}'
+            topic: '${PATIENT_KAFKA_TOPIC:-form.population.requested}'
             config:
               acks: all
               retries: 3
 
       # Questionnaire events for form validation
       - name: questionnaire-created
-        description: "New questionnaire resources for validation"
+        description: 'New questionnaire resources for validation'
         resourceType: Questionnaire
         criteria:
-          - "Questionnaire?_type=Questionnaire"
+          - 'Questionnaire?_type=Questionnaire'
         eventTypes:
           - create
         destinations:
           - type: kafka
             brokers:
-              - "${KAFKA_BOOTSTRAP_SERVERS:-localhost:9094}"
-            topic: "${QUESTIONNAIRE_KAFKA_TOPIC:-form.validation.requested}"
+              - '${KAFKA_BOOTSTRAP_SERVERS:-localhost:9094}'
+            topic: '${QUESTIONNAIRE_KAFKA_TOPIC:-form.validation.requested}'
             config:
               acks: all
               retries: 3
 
       # QuestionnaireResponse events for form completion
       - name: form-populated
-        description: "QuestionnaireResponse changes for form completion tracking"
+        description: 'QuestionnaireResponse changes for form completion tracking'
         resourceType: QuestionnaireResponse
         criteria:
-          - "QuestionnaireResponse?_type=QuestionnaireResponse"
+          - 'QuestionnaireResponse?_type=QuestionnaireResponse'
         eventTypes:
           - create
           - update
         destinations:
           - type: kafka
             brokers:
-              - "${KAFKA_BOOTSTRAP_SERVERS:-localhost:9094}"
-            topic: "${RESPONSE_KAFKA_TOPIC:-form.populated}"
+              - '${KAFKA_BOOTSTRAP_SERVERS:-localhost:9094}'
+            topic: '${RESPONSE_KAFKA_TOPIC:-form.populated}'
             config:
               acks: all
               retries: 3

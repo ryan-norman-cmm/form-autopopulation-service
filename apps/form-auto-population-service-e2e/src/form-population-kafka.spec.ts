@@ -42,29 +42,31 @@ test.beforeAll(async () => {
   // Start mock FHIR server (acts as Aidbox)
   const app = express();
   app.use(express.json());
-  
+
   // Mock FHIR endpoint for creating QuestionnaireResponse
   app.post('/QuestionnaireResponse', (req, res) => {
     const resource = req.body;
     resource.id = `questionnaire-response-${Date.now()}`;
     createdResources.push(resource);
-    console.log(`📋 Mock FHIR server created QuestionnaireResponse: ${resource.id}`);
+    console.log(
+      `📋 Mock FHIR server created QuestionnaireResponse: ${resource.id}`
+    );
     res.status(201).json(resource);
   });
-  
+
   // Endpoint to retrieve created resources for testing
   app.get('/QuestionnaireResponse', (req, res) => {
-    res.json({ 
+    res.json({
       resourceType: 'Bundle',
-      entry: createdResources.map(r => ({ resource: r })) 
+      entry: createdResources.map((r) => ({ resource: r })),
     });
   });
-  
+
   // Health check
   app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
   });
-  
+
   // Use port 0 to get an available port automatically
   mockFhirServer = app.listen(0);
   serverPort = (mockFhirServer.address() as any)?.port;
@@ -89,15 +91,25 @@ test.beforeEach(async () => {
   createdResources = [];
 });
 
-test('End-to-end Kafka form auto-population with real service', async ({ page, request }) => {
+test('End-to-end Kafka form auto-population with real service', async ({
+  page,
+  request,
+}) => {
   // Check if the service is configured for testing
   // The service needs to be started with:
   // AIDBOX_URL=http://localhost:{mockFhirServerPort} KAFKA_BOOTSTRAP_SERVERS=localhost:9094 npx nx serve form-auto-population-service
-  
+
   // Skip if service is not running - Service must be manually started for this test
-  const serviceHealthCheck = await request.get('http://localhost:3000/health').catch(() => null);
+  const serviceHealthCheck = await request
+    .get('http://localhost:3000/health')
+    .catch(() => null);
   if (!serviceHealthCheck?.ok()) {
-    test.skip(true, 'Form auto-population service not running on port 3000. Start with: AIDBOX_URL=http://localhost:' + serverPort + ' KAFKA_BOOTSTRAP_SERVERS=localhost:9094 npx nx serve form-auto-population-service');
+    test.skip(
+      true,
+      'Form auto-population service not running on port 3000. Start with: AIDBOX_URL=http://localhost:' +
+        serverPort +
+        ' KAFKA_BOOTSTRAP_SERVERS=localhost:9094 npx nx serve form-auto-population-service'
+    );
   }
 
   // Wait for mock FHIR server to be ready
@@ -121,10 +133,12 @@ test('End-to-end Kafka form auto-population with real service', async ({ page, r
   // The service should connect to our mock FHIR server on the dynamic port
   // We need to configure the service to use our mock FHIR server
   // For this test, we'll poll for the created resource
-  
+
   let questionnaireResponse: any = null;
   await expect(async () => {
-    const response = await request.get(`http://localhost:${serverPort}/QuestionnaireResponse`);
+    const response = await request.get(
+      `http://localhost:${serverPort}/QuestionnaireResponse`
+    );
     expect(response.ok()).toBeTruthy();
     const bundle = await response.json();
     expect(bundle.entry).toHaveLength(1);
@@ -134,7 +148,9 @@ test('End-to-end Kafka form auto-population with real service', async ({ page, r
   // Verify the FHIR QuestionnaireResponse structure
   expect(questionnaireResponse.resourceType).toBe('QuestionnaireResponse');
   expect(questionnaireResponse.status).toBe('completed');
-  expect(questionnaireResponse.questionnaire).toBe('Questionnaire/wegovy-intake');
+  expect(questionnaireResponse.questionnaire).toBe(
+    'Questionnaire/wegovy-intake'
+  );
   expect(questionnaireResponse.subject.reference).toBe('Patient/patient-123');
   expect(questionnaireResponse.authored).toBe('2025-09-13T10:00:00Z');
 
@@ -142,32 +158,50 @@ test('End-to-end Kafka form auto-population with real service', async ({ page, r
   expect(questionnaireResponse.item).toHaveLength(5);
 
   // Verify specific data type conversions
-  const ageItem = questionnaireResponse.item.find((item: any) => item.linkId === 'patient-age');
+  const ageItem = questionnaireResponse.item.find(
+    (item: any) => item.linkId === 'patient-age'
+  );
   expect(ageItem.answer[0].valueInteger).toBe(45);
 
-  const genderItem = questionnaireResponse.item.find((item: any) => item.linkId === 'patient-gender');
+  const genderItem = questionnaireResponse.item.find(
+    (item: any) => item.linkId === 'patient-gender'
+  );
   expect(genderItem.answer[0].valueCoding.code).toBe('female');
-  expect(genderItem.answer[0].valueCoding.system).toBe('http://hl7.org/fhir/administrative-gender');
+  expect(genderItem.answer[0].valueCoding.system).toBe(
+    'http://hl7.org/fhir/administrative-gender'
+  );
 
-  const bmiItem = questionnaireResponse.item.find((item: any) => item.linkId === 'current-bmi');
+  const bmiItem = questionnaireResponse.item.find(
+    (item: any) => item.linkId === 'current-bmi'
+  );
   expect(bmiItem.answer[0].valueDecimal).toBe(32.5);
 
-  const criteriaItem = questionnaireResponse.item.find((item: any) => item.linkId === 'bmi-criteria');
+  const criteriaItem = questionnaireResponse.item.find(
+    (item: any) => item.linkId === 'bmi-criteria'
+  );
   expect(criteriaItem.answer[0].valueBoolean).toBe(true);
 
-  const comorbiditiesItem = questionnaireResponse.item.find((item: any) => item.linkId === 'weight-related-comorbidities');
+  const comorbiditiesItem = questionnaireResponse.item.find(
+    (item: any) => item.linkId === 'weight-related-comorbidities'
+  );
   expect(comorbiditiesItem.answer).toHaveLength(2);
-  expect(comorbiditiesItem.answer[0].valueString).toBe('Type 2 diabetes mellitus');
+  expect(comorbiditiesItem.answer[0].valueString).toBe(
+    'Type 2 diabetes mellitus'
+  );
   expect(comorbiditiesItem.answer[1].valueString).toBe('Hypertension');
 
   // Verify FHIR metadata
   expect(questionnaireResponse.meta.profile).toEqual([
-    'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse'
+    'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse',
   ]);
-  expect(questionnaireResponse.meta.lastUpdated).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+  expect(questionnaireResponse.meta.lastUpdated).toMatch(
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/
+  );
 
   console.log('✅ End-to-end Kafka form auto-population test passed!');
-  console.log(`📋 Service processed Kafka event and created QuestionnaireResponse`);
+  console.log(
+    `📋 Service processed Kafka event and created QuestionnaireResponse`
+  );
   console.log(`👤 Patient: ${questionnaireResponse.subject.reference}`);
   console.log(`📝 Form: ${questionnaireResponse.questionnaire}`);
 });

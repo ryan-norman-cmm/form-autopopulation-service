@@ -190,7 +190,7 @@ Create access policy for QuestionnaireResponse resources:
 
 ```json
 {
-  "resourceType": "AccessPolicy", 
+  "resourceType": "AccessPolicy",
   "id": "questionnaireresponse-access-policy",
   "description": "Form response access for auto-population service",
   "link": [
@@ -214,7 +214,7 @@ Create read-only access policy for Patient resources:
 ```json
 {
   "resourceType": "AccessPolicy",
-  "id": "patient-read-access-policy", 
+  "id": "patient-read-access-policy",
   "description": "Patient data read access for form population",
   "link": [
     {
@@ -241,7 +241,7 @@ curl -X PUT https://your-aidbox-instance/AccessPolicy/questionnaire-access-polic
   -H "Content-Type: application/json" \
   -d @questionnaire-access-policy.json
 
-# Apply QuestionnaireResponse access policy  
+# Apply QuestionnaireResponse access policy
 curl -X PUT https://your-aidbox-instance/AccessPolicy/questionnaireresponse-access-policy \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
@@ -294,7 +294,7 @@ Create subscription topic for new Questionnaire resources:
 ```json
 {
   "resourceType": "SubscriptionTopic",
-  "id": "questionnaire-created", 
+  "id": "questionnaire-created",
   "status": "active",
   "description": "New questionnaire resources for validation",
   "resourceTrigger": [
@@ -324,7 +324,7 @@ Create subscription topic for QuestionnaireResponse events:
 {
   "resourceType": "SubscriptionTopic",
   "id": "form-populated",
-  "status": "active", 
+  "status": "active",
   "description": "QuestionnaireResponse changes for form completion tracking",
   "resourceTrigger": [
     {
@@ -337,7 +337,7 @@ Create subscription topic for QuestionnaireResponse events:
     {
       "description": "Form population completed",
       "event": {
-        "system": "http://terminology.hl7.org/CodeSystem/restful-interaction", 
+        "system": "http://terminology.hl7.org/CodeSystem/restful-interaction",
         "code": "update"
       }
     }
@@ -388,9 +388,7 @@ Create subscription for Patient events:
     "type": "rest-hook",
     "endpoint": "kafka://your-kafka-cluster:9092/form.population.requested",
     "payload": "application/fhir+json",
-    "header": [
-      "Authorization: Bearer YOUR_SERVICE_TOKEN"
-    ]
+    "header": ["Authorization: Bearer YOUR_SERVICE_TOKEN"]
   },
   "reason": "Patient data changes for form auto-population"
 }
@@ -404,16 +402,14 @@ Create subscription for Questionnaire events:
 {
   "resourceType": "Subscription",
   "id": "questionnaire-kafka-subscription",
-  "status": "active", 
+  "status": "active",
   "criteria": "Questionnaire",
   "topic": "https://your-aidbox-instance/SubscriptionTopic/questionnaire-created",
   "channel": {
     "type": "rest-hook",
     "endpoint": "kafka://your-kafka-cluster:9092/form.validation.requested",
     "payload": "application/fhir+json",
-    "header": [
-      "Authorization: Bearer YOUR_SERVICE_TOKEN"
-    ]
+    "header": ["Authorization: Bearer YOUR_SERVICE_TOKEN"]
   },
   "reason": "New form templates for validation"
 }
@@ -428,15 +424,13 @@ Create subscription for QuestionnaireResponse events:
   "resourceType": "Subscription",
   "id": "response-kafka-subscription",
   "status": "active",
-  "criteria": "QuestionnaireResponse", 
+  "criteria": "QuestionnaireResponse",
   "topic": "https://your-aidbox-instance/SubscriptionTopic/form-populated",
   "channel": {
     "type": "rest-hook",
     "endpoint": "kafka://your-kafka-cluster:9092/form.populated",
     "payload": "application/fhir+json",
-    "header": [
-      "Authorization: Bearer YOUR_SERVICE_TOKEN"
-    ]
+    "header": ["Authorization: Bearer YOUR_SERVICE_TOKEN"]
   },
   "reason": "Form population completion events"
 }
@@ -495,7 +489,7 @@ Test resource access permissions:
 curl -X GET https://your-aidbox-instance/Questionnaire \
   -H "Authorization: Bearer $ACCESS_TOKEN"
 
-# Test QuestionnaireResponse access  
+# Test QuestionnaireResponse access
 curl -X GET https://your-aidbox-instance/QuestionnaireResponse \
   -H "Authorization: Bearer $ACCESS_TOKEN"
 
@@ -568,7 +562,7 @@ curl -X POST https://your-aidbox-instance/Questionnaire \
 
 - **Access Control**: All API access requires valid OAuth2 tokens with minimal necessary scopes
 - **Audit Controls**: All configuration changes and resource access are logged
-- **Integrity**: TLS encryption protects data in transit; database encryption protects data at rest  
+- **Integrity**: TLS encryption protects data in transit; database encryption protects data at rest
 - **Person or Entity Authentication**: OAuth2 client authentication validates service identity
 - **Transmission Security**: All communications use TLS 1.2+ with strong cipher suites
 
@@ -592,16 +586,19 @@ curl -X POST https://your-aidbox-instance/Questionnaire \
 #### Common Configuration Issues
 
 1. **OAuth2 Authentication Failures**
+
    - Verify client ID and secret are correct
    - Check client grant types include "client_credentials"
    - Ensure client scopes match required FHIR resources
 
 2. **Access Policy Violations**
+
    - Verify access policies are applied and active
    - Check resource type and action permissions
    - Validate client is included in policy subjects
 
 3. **Subscription Delivery Failures**
+
    - Check subscription status is "active"
    - Verify Kafka endpoints are reachable
    - Monitor subscription error logs in Aidbox
