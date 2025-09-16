@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
 import {
-  WegovyOutput,
+  QuestionnaireOutput,
   convertToQuestionnaireResponse,
 } from '@form-auto-population/fhir-questionnaire-converter';
 import express from 'express';
 import { Server } from 'http';
 
-// Test data - subset of Wegovy AI output for testing
-const WEGOVY_TEST_DATA: WegovyOutput = [
+// Test data - sample questionnaire AI output for testing
+const QUESTIONNAIRE_TEST_DATA: QuestionnaireOutput = [
   {
     question_id: 'patient-age',
     question_text: 'Patient Age',
@@ -82,7 +82,7 @@ test.beforeEach(async () => {
   createdResources = [];
 });
 
-test('Form auto-population service converts Wegovy data to FHIR QuestionnaireResponse', async ({
+test('Form auto-population service converts questionnaire data to FHIR QuestionnaireResponse', async ({
   request,
 }) => {
   // Wait for mock FHIR server to be ready
@@ -108,16 +108,16 @@ test('Form auto-population service converts Wegovy data to FHIR QuestionnaireRes
   // 3. Verifying the conversion is correct
 
   const testEvent = {
-    formId: 'wegovy-intake',
+    formId: 'healthcare-intake',
     patientId: 'patient-123',
-    wegovyOutput: WEGOVY_TEST_DATA,
+    questionnaireOutput: QUESTIONNAIRE_TEST_DATA,
     timestamp: '2025-09-13T10:00:00Z',
   };
 
   // Use the converter function from the static import
 
   const questionnaireResponse = convertToQuestionnaireResponse(
-    testEvent.wegovyOutput,
+    testEvent.questionnaireOutput,
     {
       formId: testEvent.formId,
       patientId: testEvent.patientId,
@@ -139,7 +139,7 @@ test('Form auto-population service converts Wegovy data to FHIR QuestionnaireRes
   // Verify the FHIR QuestionnaireResponse structure
   expect(createdResource.resourceType).toBe('QuestionnaireResponse');
   expect(createdResource.status).toBe('completed');
-  expect(createdResource.questionnaire).toBe('Questionnaire/wegovy-intake');
+  expect(createdResource.questionnaire).toBe('Questionnaire/healthcare-intake');
   expect(createdResource.subject.reference).toBe('Patient/patient-123');
   expect(createdResource.authored).toBe('2025-09-13T10:00:00Z');
 

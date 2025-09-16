@@ -3,7 +3,7 @@ import { Kafka, Producer, logLevel } from 'kafkajs';
 export interface FormPopulationCompletedEvent {
   formId: string;
   patientId: string;
-  wegovyOutput: Array<{
+  questionnaireOutput: Array<{
     question_id: string;
     question_text: string;
     answer: string | number | boolean | string[];

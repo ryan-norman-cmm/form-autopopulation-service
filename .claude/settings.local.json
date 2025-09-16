@@ -50,7 +50,10 @@
       "Bash(if git ls-remote --heads origin validate-infrastructure-ci-20250916)",
       "Bash(then echo \"❌ Remote branch still exists\")",
       "Bash(else echo \"✅ Remote branch successfully deleted\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(npm test:*)",
+      "Bash(npx nx run:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
