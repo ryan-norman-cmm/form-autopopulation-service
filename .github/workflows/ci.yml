@@ -85,9 +85,9 @@ jobs:
       - name: Run type checking
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            npx nx affected -t build --base=origin/${{ github.base_ref }} --head=HEAD
+            npx nx affected -t vite:typecheck --base=origin/${{ github.base_ref }} --head=HEAD
           else
-            npx nx affected -t build --base=HEAD~1
+            npx nx affected -t vite:typecheck --base=HEAD~1
           fi
 
   test:

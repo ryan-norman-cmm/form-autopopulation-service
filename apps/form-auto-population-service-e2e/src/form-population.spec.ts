@@ -83,7 +83,6 @@ test.beforeEach(async () => {
 });
 
 test('Form auto-population service converts Wegovy data to FHIR QuestionnaireResponse', async ({
-  page,
   request,
 }) => {
   // Wait for mock FHIR server to be ready

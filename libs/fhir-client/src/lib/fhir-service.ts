@@ -137,7 +137,7 @@ export class FhirService {
       : `${this.baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
 
     const response = await axios({
-      method: method.toLowerCase() as any,
+      method: method.toLowerCase() as 'get' | 'post' | 'put' | 'delete',
       url: fullUrl,
       data,
       headers: {

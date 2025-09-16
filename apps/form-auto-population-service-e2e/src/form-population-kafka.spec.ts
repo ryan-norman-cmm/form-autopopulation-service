@@ -92,7 +92,6 @@ test.beforeEach(async () => {
 });
 
 test('End-to-end Kafka form auto-population with real service', async ({
-  page,
   request,
 }) => {
   // Check if the service is configured for testing

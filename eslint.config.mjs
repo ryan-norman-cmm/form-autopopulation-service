@@ -55,4 +55,10 @@ export default [
       'no-console': 'off',
     },
   },
+  {
+    files: ['**/*e2e*/**/*.{ts,js}', '**/e2e/**/*.{ts,js}'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
 ];
