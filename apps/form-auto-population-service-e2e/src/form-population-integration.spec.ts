@@ -42,7 +42,7 @@ let mockFhirServer: Server;
 let createdResources: any[] = [];
 let serverPort: number;
 let kafkaProducer: KafkaProducer;
-let serviceProcess: ChildProcess | null = null;
+const serviceProcess: ChildProcess | null = null;
 
 test.beforeAll(async () => {
   // Start mock FHIR server (acts as Aidbox)

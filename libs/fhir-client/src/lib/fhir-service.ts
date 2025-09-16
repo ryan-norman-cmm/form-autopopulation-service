@@ -31,7 +31,7 @@ export class FhirService {
   private clientSecret: string;
   private useOAuth: boolean;
   private accessToken: string | null = null;
-  private tokenExpiresAt: number = 0;
+  private tokenExpiresAt = 0;
 
   constructor(config: FhirServiceConfig) {
     this.baseUrl = config.baseUrl;

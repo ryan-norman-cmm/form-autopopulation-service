@@ -21,7 +21,7 @@ async function startMockFhirServer() {
     const app = express();
     app.use(express.json());
 
-    let createdResources = [];
+    const createdResources = [];
 
     // Mock FHIR endpoints
     app.post('/fhir/QuestionnaireResponse', (req, res) => {
