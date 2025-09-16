@@ -7,7 +7,13 @@
     "lint": "nx run-many -t lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "nx run-many -t type-check"
+    "typecheck": "nx run-many -t type-check",
+    "test": "nx run-many -t test",
+    "test:watch": "nx run-many -t test --watch",
+    "test:coverage": "nx run-many -t test --coverage",
+    "test:e2e": "nx run-many -t e2e",
+    "build": "nx run-many -t build",
+    "build:affected": "nx affected -t build"
   },
   "private": true,
   "devDependencies": {
