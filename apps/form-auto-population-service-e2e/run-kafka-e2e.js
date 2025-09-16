@@ -5,10 +5,8 @@
  * This script coordinates running the E2E test with a real service instance
  */
 
-const { spawn, exec } = require('child_process');
+const { spawn } = require('child_process');
 const express = require('express');
-const { promisify } = require('util');
-const execAsync = promisify(exec);
 
 let mockFhirServer;
 let serviceProcess;

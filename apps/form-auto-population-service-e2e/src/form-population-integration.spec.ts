@@ -6,8 +6,6 @@ import {
 import express from 'express';
 import { Server } from 'http';
 import { KafkaProducer, FormPopulationCompletedEvent } from './kafka-producer';
-import { spawn, ChildProcess } from 'child_process';
-import path from 'path';
 
 // Test data - subset of Wegovy AI output for testing
 const WEGOVY_TEST_DATA: WegovyOutput = [
@@ -42,7 +40,6 @@ let mockFhirServer: Server;
 let createdResources: any[] = [];
 let serverPort: number;
 let kafkaProducer: KafkaProducer;
-const serviceProcess: ChildProcess | null = null;
 
 test.beforeAll(async () => {
   // Start mock FHIR server (acts as Aidbox)
@@ -136,10 +133,7 @@ test.beforeEach(async () => {
 });
 
 test.describe('Form Auto-Population Integration Tests', () => {
-  test('Direct library conversion (baseline test)', async ({
-    page,
-    request,
-  }) => {
+  test('Direct library conversion (baseline test)', async ({ request }) => {
     // This test validates the library conversion without Kafka
     // Use the converter function from static import
 
@@ -172,7 +166,6 @@ test.describe('Form Auto-Population Integration Tests', () => {
   });
 
   test('Kafka integration test (requires running service)', async ({
-    page,
     request,
   }) => {
     // This test requires the service to be running with proper configuration
@@ -192,7 +185,7 @@ test.describe('Form Auto-Population Integration Tests', () => {
           console.log(`✅ Found running service on port ${port}`);
           break;
         }
-      } catch (error) {
+      } catch {
         // Service not running on this port
       }
     }
