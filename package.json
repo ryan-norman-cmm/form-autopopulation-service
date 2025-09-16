@@ -2,9 +2,17 @@
   "name": "@form-auto-population/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "prepare": "husky",
+    "lint": "nx run-many -t lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "nx run-many -t type-check"
+  },
   "private": true,
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@cucumber/cucumber": "^12.2.0",
     "@cucumber/gherkin": "^35.0.0",
     "@cucumber/pretty-formatter": "^2.2.0",
@@ -39,12 +47,14 @@
     "eslint-config-prettier": "^10.0.0",
     "eslint-plugin-playwright": "^1.6.2",
     "express": "^5.1.0",
+    "husky": "^9.1.7",
     "jest": "^30.0.2",
     "jest-environment-node": "^30.0.2",
     "jest-util": "^30.0.2",
     "jiti": "2.4.2",
     "jsonc-eslint-parser": "^2.1.0",
     "kafkajs": "^2.2.4",
+    "lint-staged": "^16.1.6",
     "nx": "21.5.2",
     "playwright-bdd": "^8.4.1",
     "prettier": "^2.6.2",
@@ -77,5 +87,14 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
     "typeorm": "^0.3.26"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }
