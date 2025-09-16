@@ -2,16 +2,9 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { FhirService } from '@form-auto-population/fhir-client';
 import {
   convertToQuestionnaireResponse,
-  QuestionnaireOutput,
   QuestionnaireResponseMetadata,
+  FormPopulationCompletedEvent,
 } from '@form-auto-population/fhir-questionnaire-converter';
-
-interface FormPopulationCompletedEvent {
-  formId: string;
-  patientId: string;
-  questionnaireOutput: QuestionnaireOutput;
-  timestamp: string;
-}
 
 @Injectable()
 export class FormPopulationService {

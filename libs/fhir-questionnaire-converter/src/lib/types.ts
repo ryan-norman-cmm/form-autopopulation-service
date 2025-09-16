@@ -18,6 +18,13 @@ export interface QuestionnaireResponseMetadata {
   timestamp: string;
 }
 
+export interface FormPopulationCompletedEvent {
+  formId: string;
+  patientId: string;
+  questionnaireOutput: QuestionnaireOutput;
+  timestamp: string;
+}
+
 /**
  * FHIR QuestionnaireResponse Answer
  */
