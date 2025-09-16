@@ -269,3 +269,44 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+
+  # Form Auto-Population Service
+  form-auto-population-service:
+    image: form-auto-population-service:latest
+    container_name: form-auto-population-service
+    build:
+      context: .
+      dockerfile: ./apps/form-auto-population-service/Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      # Load OAuth credentials from FHIR operator
+      - FHIR_SERVER_URL=http://aidbox:8080/fhir
+      # Kafka configuration
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - PATIENT_KAFKA_TOPIC=form.population.requested
+      - QUESTIONNAIRE_KAFKA_TOPIC=form.validation.requested
+      - RESPONSE_KAFKA_TOPIC=form.populated
+    volumes:
+      - fhir_operator_secrets:/run/secrets/clients:ro
+    # Load OAuth credentials from FHIR operator (temporarily disabled for testing)
+    # env_file:
+    #   - /run/secrets/clients/form-auto-population-service.env
+    depends_on:
+      fhir-server-operator:
+        condition: service_healthy
+      aidbox:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      form-network:
+        ipv4_address: 172.25.0.50
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

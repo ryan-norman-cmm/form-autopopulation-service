@@ -53,6 +53,7 @@ import { HealthController } from './health.controller';
           baseUrl,
           clientId,
           clientSecret,
+          useOAuth: true, // Enable OAuth2 client credentials flow
         };
 
         return new FhirService(fhirConfig);

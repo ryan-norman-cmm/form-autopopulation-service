@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Inject } from '@nestjs/common';
 import { AppService } from './app.service';
+import { FhirService } from '@form-auto-population/fhir-client';
 
 interface FormPopulationRequest {
   formId: string;
@@ -9,7 +10,10 @@ interface FormPopulationRequest {
 
 @Controller('api/forms')
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    @Inject('FHIR_SERVICE') private readonly fhirService: FhirService
+  ) {}
 
   @Get()
   getData() {
@@ -54,9 +58,46 @@ export class AppController {
       throw new Error('Form ID is required');
     }
 
-    // In production, this would fetch form templates from a database or FHIR server
-    throw new Error(
-      'Form template retrieval not implemented - requires FHIR Questionnaire resource integration'
-    );
+    try {
+      const questionnaire = await this.fhirService.getResource('Questionnaire', formId);
+      return questionnaire;
+    } catch (error) {
+      throw new Error(`Failed to retrieve questionnaire ${formId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  @Post('test/create-questionnaire')
+  async createTestQuestionnaire() {
+    const testQuestionnaire = {
+      resourceType: 'Questionnaire' as const,
+      status: 'active' as const,
+      name: 'TestQuestionnaire',
+      title: 'Test Form for Auto-Population',
+      description: 'A test questionnaire for verifying FHIR capabilities',
+      item: [
+        {
+          linkId: '1',
+          text: 'What is your name?',
+          type: 'string' as const,
+          required: true
+        },
+        {
+          linkId: '2', 
+          text: 'What is your age?',
+          type: 'integer' as const,
+          required: false
+        }
+      ]
+    };
+
+    try {
+      const result = await this.fhirService.createResource('Questionnaire', testQuestionnaire);
+      return {
+        message: 'Questionnaire created successfully',
+        resource: result
+      };
+    } catch (error) {
+      throw new Error(`Failed to create questionnaire: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }

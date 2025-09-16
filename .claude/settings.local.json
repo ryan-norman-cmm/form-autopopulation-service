@@ -24,7 +24,15 @@
       "Bash(mv:*)",
       "Bash(npx nx e2e:*)",
       "Bash(chmod:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(docker compose:*)",
+      "Bash(curl:*)",
+      "Bash(npx nx serve:*)",
+      "Bash(docker volume:*)",
+      "Bash(docker run:*)",
+      "Bash(./scripts/extract-fhir-credentials.sh:*)",
+      "Bash(npx nx reset:*)",
+      "Bash(FHIR_SERVER_URL=http://localhost:8081 FHIR_CLIENT_ID=form-auto-population-service FHIR_CLIENT_SECRET=ihEFkJ3xOgFw5y1qJyEwVcES15m2ztNFxAw6MGL+9+c npx nx serve form-auto-population-service)"
     ],
     "deny": [],
     "ask": []

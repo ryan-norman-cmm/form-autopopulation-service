@@ -1,5 +1,6 @@
 import { Client, type BasicAuthorization } from '@aidbox/sdk-r4';
 import type { Patient, ResourceTypeMap } from '@aidbox/sdk-r4/types';
+import axios from 'axios';
 
 // All HTTP requests handled by Aidbox SDK
 
@@ -14,21 +15,121 @@ export interface FhirServiceConfig {
   baseUrl: string;
   clientId: string;
   clientSecret: string;
+  useOAuth?: boolean; // Flag to use OAuth2 instead of basic auth
+}
+
+interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
 }
 
 export class FhirService {
   private client: Client<BasicAuthorization>;
+  private baseUrl: string;
+  private clientId: string;
+  private clientSecret: string;
+  private useOAuth: boolean;
+  private accessToken: string | null = null;
+  private tokenExpiresAt: number = 0;
 
   constructor(config: FhirServiceConfig) {
-    this.client = new Client<BasicAuthorization>(config.baseUrl, {
-      auth: {
-        method: 'basic',
-        credentials: {
-          username: config.clientId,
-          password: config.clientSecret,
+    this.baseUrl = config.baseUrl;
+    this.clientId = config.clientId;
+    this.clientSecret = config.clientSecret;
+    this.useOAuth = config.useOAuth ?? true; // Default to OAuth2
+
+    if (this.useOAuth) {
+      // For OAuth2, we'll manage tokens manually and use HTTP client directly
+      this.client = new Client<BasicAuthorization>(config.baseUrl, {
+        auth: {
+          method: 'basic',
+          credentials: {
+            username: 'temp', // Placeholder, we'll override with Bearer tokens
+            password: 'temp',
+          },
         },
+      });
+    } else {
+      // Fallback to basic auth
+      this.client = new Client<BasicAuthorization>(config.baseUrl, {
+        auth: {
+          method: 'basic',
+          credentials: {
+            username: config.clientId,
+            password: config.clientSecret,
+          },
+        },
+      });
+    }
+  }
+
+  /**
+   * Get OAuth2 access token using client credentials flow
+   */
+  private async getAccessToken(): Promise<string> {
+    const now = Date.now();
+
+    // Return cached token if still valid (with 30 second buffer)
+    if (this.accessToken && now < (this.tokenExpiresAt - 30000)) {
+      return this.accessToken;
+    }
+
+    try {
+      // Remove /fhir from baseUrl for token endpoint
+      const authBaseUrl = this.baseUrl.replace('/fhir', '');
+      const tokenUrl = `${authBaseUrl}/auth/token`;
+
+      const response = await axios.post<TokenResponse>(tokenUrl, {
+        grant_type: 'client_credentials',
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
+      }, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        transformRequest: [(data) => {
+          return Object.keys(data)
+            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+            .join('&');
+        }],
+      });
+
+      this.accessToken = response.data.access_token;
+      this.tokenExpiresAt = now + (response.data.expires_in * 1000);
+
+      return this.accessToken;
+    } catch (error) {
+      throw new Error(
+        `Failed to obtain OAuth2 access token: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
+    }
+  }
+
+  /**
+   * Make authenticated HTTP request with OAuth2 Bearer token
+   */
+  private async makeAuthenticatedRequest<T>(method: string, url: string, data?: unknown): Promise<T> {
+    if (!this.useOAuth) {
+      throw new Error('This method requires OAuth2 to be enabled');
+    }
+
+    const token = await this.getAccessToken();
+    const fullUrl = url.startsWith('http') ? url : `${this.baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+
+    const response = await axios({
+      method: method.toLowerCase() as any,
+      url: fullUrl,
+      data,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
     });
+
+    return response.data;
   }
 
   /**
@@ -36,7 +137,11 @@ export class FhirService {
    */
   async getPatient(id: string): Promise<Patient> {
     try {
-      return await this.client.resource.get('Patient', id);
+      if (this.useOAuth) {
+        return await this.makeAuthenticatedRequest<Patient>('GET', `/Patient/${id}`);
+      } else {
+        return await this.client.resource.get('Patient', id);
+      }
     } catch (error) {
       // Don't log patient IDs or sensitive data
       throw new Error(
@@ -150,10 +255,15 @@ export class FhirService {
         ...resource,
         resourceType: resourceType,
       };
-      return (await this.client.resource.create(
-        resourceType,
-        resourceWithType
-      )) as ResourceTypeMap[T];
+
+      if (this.useOAuth) {
+        return await this.makeAuthenticatedRequest<ResourceTypeMap[T]>('POST', `/${resourceType}`, resourceWithType);
+      } else {
+        return (await this.client.resource.create(
+          resourceType,
+          resourceWithType
+        )) as ResourceTypeMap[T];
+      }
     } catch (error) {
       throw new Error(
         `Failed to create ${resourceType} resource: ${
