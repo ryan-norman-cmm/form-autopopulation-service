@@ -46,7 +46,11 @@
       "Bash(git log:*)",
       "Bash(grep:*)",
       "Bash(gh pr diff:*)",
-      "Bash(HUSKY=0 git commit -m \"feat: complete infrastructure modernization with best practices implementation\n\n- Comprehensive CI/CD pipeline with GitHub Actions\n- Security improvements with GitHub secrets integration  \n- Modern TypeScript configuration with strict mode\n- Enhanced development workflow and testing strategy\n- Streamlined quality gates: lint, typecheck, test, build\n- Production-ready standards for FHIR healthcare applications\n\nThis merge transforms the project from basic setup to enterprise-grade\ninfrastructure ready for healthcare data processing and compliance.\n\nNote: Linting fixes will be addressed in follow-up commit.\")"
+      "Bash(HUSKY=0 git commit -m \"feat: complete infrastructure modernization with best practices implementation\n\n- Comprehensive CI/CD pipeline with GitHub Actions\n- Security improvements with GitHub secrets integration  \n- Modern TypeScript configuration with strict mode\n- Enhanced development workflow and testing strategy\n- Streamlined quality gates: lint, typecheck, test, build\n- Production-ready standards for FHIR healthcare applications\n\nThis merge transforms the project from basic setup to enterprise-grade\ninfrastructure ready for healthcare data processing and compliance.\n\nNote: Linting fixes will be addressed in follow-up commit.\")",
+      "Bash(if git ls-remote --heads origin validate-infrastructure-ci-20250916)",
+      "Bash(then echo \"❌ Remote branch still exists\")",
+      "Bash(else echo \"✅ Remote branch successfully deleted\")",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []

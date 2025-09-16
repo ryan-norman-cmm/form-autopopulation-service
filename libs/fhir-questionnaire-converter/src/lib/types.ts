@@ -9,12 +9,6 @@ export interface QuestionnaireOutputItem {
 
 export type QuestionnaireOutput = QuestionnaireOutputItem[];
 
-// Backward compatibility aliases
-/** @deprecated Use QuestionnaireOutputItem instead */
-export type WegovyOutputItem = QuestionnaireOutputItem;
-/** @deprecated Use QuestionnaireOutput instead */
-export type WegovyOutput = QuestionnaireOutput;
-
 /**
  * Metadata required for FHIR QuestionnaireResponse
  */
