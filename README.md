@@ -81,6 +81,557 @@ npm install
 npx nx serve form-auto-population-service
 ```
 
+## Manual Configuration for Healthcare Administrators
+
+This section provides step-by-step instructions for manually configuring the FHIR server components in production environments where automated Docker Compose setup is not suitable. These instructions are designed for healthcare administrators, security officers, and DevOps engineers who need granular control over FHIR server configuration while maintaining HIPAA compliance and FHIR R4 standards.
+
+### Prerequisites for Manual Setup
+
+#### Environment Requirements
+
+- **FHIR Server**: Aidbox instance with admin access
+- **Message Broker**: Apache Kafka cluster (3.0+)
+- **Database**: PostgreSQL 14+ for FHIR data storage
+- **Network**: Secure network connectivity between components
+- **Security**: TLS certificates for encrypted communication
+
+#### Security Prerequisites
+
+- **Admin Access**: Aidbox admin credentials with full system access
+- **Certificate Management**: Valid TLS certificates for HTTPS endpoints
+- **Network Security**: Firewall rules configured for required ports
+- **Audit Logging**: Centralized logging system for compliance tracking
+
+#### Healthcare Compliance Requirements
+
+- **HIPAA Compliance**: Ensure all configurations meet HIPAA technical safeguards
+- **FHIR R4 Standard**: Validate all resource interactions comply with FHIR R4 specification
+- **Access Control**: Implement principle of least privilege for all service accounts
+- **Data Encryption**: Configure encryption at rest and in transit for all PHI
+
+### Step 1: FHIR Client Configuration
+
+Create OAuth2 clients in Aidbox for secure service-to-service communication with healthcare-appropriate scoping.
+
+#### 1.1 Create OAuth2 Client
+
+Access the Aidbox Admin Console and create a new OAuth2 client:
+
+```bash
+# Access Aidbox Admin Console
+# Navigate to: https://your-aidbox-instance/ui/console
+
+# Create OAuth2 client using REST API
+curl -X POST https://your-aidbox-instance/Client \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resourceType": "Client",
+    "id": "form-auto-population-service",
+    "grant_types": ["client_credentials"],
+    "scope": ["system/Patient.read", "system/Questionnaire.*", "system/QuestionnaireResponse.*"],
+    "secret": "GENERATE_SECURE_SECRET_HERE"
+  }'
+```
+
+#### 1.2 Configure Healthcare-Specific Scopes
+
+The client requires these FHIR R4 compliant scopes for form auto-population workflows:
+
+- **`system/Patient.read`** - Read-only access to Patient resources for data retrieval
+- **`system/Questionnaire.*`** - Full access to Questionnaire resources for form templates
+- **`system/QuestionnaireResponse.*`** - Full access to QuestionnaireResponse resources for completed forms
+
+#### 1.3 Generate and Secure Client Credentials
+
+```bash
+# Generate a cryptographically secure client secret
+CLIENT_SECRET=$(openssl rand -base64 32)
+
+# Store credentials securely (use your organization's secret management system)
+# Example for Kubernetes secrets:
+kubectl create secret generic fhir-client-credentials \
+  --from-literal=client-id=form-auto-population-service \
+  --from-literal=client-secret=$CLIENT_SECRET
+```
+
+**Security Note**: Store client credentials in your organization's secure secret management system (e.g., HashiCorp Vault, AWS Secrets Manager, Azure Key Vault).
+
+### Step 2: Access Policy Configuration
+
+Configure resource-level access policies to ensure proper authorization and HIPAA compliance.
+
+#### 2.1 Questionnaire Access Policy
+
+Create access policy for Questionnaire resources:
+
+```json
+{
+  "resourceType": "AccessPolicy",
+  "id": "questionnaire-access-policy",
+  "description": "Form template access for auto-population service",
+  "link": [
+    {
+      "resourceType": "Questionnaire",
+      "action": ["read", "create", "update", "delete"]
+    }
+  ],
+  "subject": [
+    {
+      "client": "form-auto-population-service"
+    }
+  ]
+}
+```
+
+#### 2.2 QuestionnaireResponse Access Policy
+
+Create access policy for QuestionnaireResponse resources:
+
+```json
+{
+  "resourceType": "AccessPolicy", 
+  "id": "questionnaireresponse-access-policy",
+  "description": "Form response access for auto-population service",
+  "link": [
+    {
+      "resourceType": "QuestionnaireResponse",
+      "action": ["read", "create", "update", "delete"]
+    }
+  ],
+  "subject": [
+    {
+      "client": "form-auto-population-service"
+    }
+  ]
+}
+```
+
+#### 2.3 Patient Read-Only Access Policy
+
+Create read-only access policy for Patient resources:
+
+```json
+{
+  "resourceType": "AccessPolicy",
+  "id": "patient-read-access-policy", 
+  "description": "Patient data read access for form population",
+  "link": [
+    {
+      "resourceType": "Patient",
+      "action": ["read"]
+    }
+  ],
+  "subject": [
+    {
+      "client": "form-auto-population-service"
+    }
+  ]
+}
+```
+
+#### 2.4 Apply Access Policies
+
+Apply each policy using the Aidbox REST API:
+
+```bash
+# Apply Questionnaire access policy
+curl -X PUT https://your-aidbox-instance/AccessPolicy/questionnaire-access-policy \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @questionnaire-access-policy.json
+
+# Apply QuestionnaireResponse access policy  
+curl -X PUT https://your-aidbox-instance/AccessPolicy/questionnaireresponse-access-policy \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @questionnaireresponse-access-policy.json
+
+# Apply Patient read access policy
+curl -X PUT https://your-aidbox-instance/AccessPolicy/patient-read-access-policy \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @patient-read-access-policy.json
+```
+
+### Step 3: Subscription Topic Configuration
+
+Configure FHIR subscription topics for real-time event processing based on the configuration patterns in `/fhir-operator-config/subscription-topics.yml`.
+
+#### 3.1 Patient Update Subscription Topic
+
+Create subscription topic for Patient resource changes:
+
+```json
+{
+  "resourceType": "SubscriptionTopic",
+  "id": "patient-updated",
+  "status": "active",
+  "description": "Patient resource changes for form auto-population",
+  "resourceTrigger": [
+    {
+      "resourceType": "Patient",
+      "supportedInteraction": ["create", "update"],
+      "fhirPathCriteria": "Patient"
+    }
+  ],
+  "eventTrigger": [
+    {
+      "description": "Patient data changed",
+      "event": {
+        "system": "http://terminology.hl7.org/CodeSystem/restful-interaction",
+        "code": "update"
+      }
+    }
+  ]
+}
+```
+
+#### 3.2 Questionnaire Creation Subscription Topic
+
+Create subscription topic for new Questionnaire resources:
+
+```json
+{
+  "resourceType": "SubscriptionTopic",
+  "id": "questionnaire-created", 
+  "status": "active",
+  "description": "New questionnaire resources for validation",
+  "resourceTrigger": [
+    {
+      "resourceType": "Questionnaire",
+      "supportedInteraction": ["create"],
+      "fhirPathCriteria": "Questionnaire"
+    }
+  ],
+  "eventTrigger": [
+    {
+      "description": "New form template created",
+      "event": {
+        "system": "http://terminology.hl7.org/CodeSystem/restful-interaction",
+        "code": "create"
+      }
+    }
+  ]
+}
+```
+
+#### 3.3 Form Population Completion Subscription Topic
+
+Create subscription topic for QuestionnaireResponse events:
+
+```json
+{
+  "resourceType": "SubscriptionTopic",
+  "id": "form-populated",
+  "status": "active", 
+  "description": "QuestionnaireResponse changes for form completion tracking",
+  "resourceTrigger": [
+    {
+      "resourceType": "QuestionnaireResponse",
+      "supportedInteraction": ["create", "update"],
+      "fhirPathCriteria": "QuestionnaireResponse"
+    }
+  ],
+  "eventTrigger": [
+    {
+      "description": "Form population completed",
+      "event": {
+        "system": "http://terminology.hl7.org/CodeSystem/restful-interaction", 
+        "code": "update"
+      }
+    }
+  ]
+}
+```
+
+#### 3.4 Create Subscription Topics
+
+Apply subscription topics using the Aidbox REST API:
+
+```bash
+# Create Patient update subscription topic
+curl -X PUT https://your-aidbox-instance/SubscriptionTopic/patient-updated \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @patient-updated-topic.json
+
+# Create Questionnaire creation subscription topic
+curl -X PUT https://your-aidbox-instance/SubscriptionTopic/questionnaire-created \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @questionnaire-created-topic.json
+
+# Create form population subscription topic
+curl -X PUT https://your-aidbox-instance/SubscriptionTopic/form-populated \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @form-populated-topic.json
+```
+
+### Step 4: Subscription Destination Configuration
+
+Configure Kafka destinations for FHIR subscription events based on patterns in `/config/fhir-subscriptions.yml`.
+
+#### 4.1 Patient Event Kafka Destination
+
+Create subscription for Patient events:
+
+```json
+{
+  "resourceType": "Subscription",
+  "id": "patient-kafka-subscription",
+  "status": "active",
+  "criteria": "Patient",
+  "topic": "https://your-aidbox-instance/SubscriptionTopic/patient-updated",
+  "channel": {
+    "type": "rest-hook",
+    "endpoint": "kafka://your-kafka-cluster:9092/form.population.requested",
+    "payload": "application/fhir+json",
+    "header": [
+      "Authorization: Bearer YOUR_SERVICE_TOKEN"
+    ]
+  },
+  "reason": "Patient data changes for form auto-population"
+}
+```
+
+#### 4.2 Questionnaire Event Kafka Destination
+
+Create subscription for Questionnaire events:
+
+```json
+{
+  "resourceType": "Subscription",
+  "id": "questionnaire-kafka-subscription",
+  "status": "active", 
+  "criteria": "Questionnaire",
+  "topic": "https://your-aidbox-instance/SubscriptionTopic/questionnaire-created",
+  "channel": {
+    "type": "rest-hook",
+    "endpoint": "kafka://your-kafka-cluster:9092/form.validation.requested",
+    "payload": "application/fhir+json",
+    "header": [
+      "Authorization: Bearer YOUR_SERVICE_TOKEN"
+    ]
+  },
+  "reason": "New form templates for validation"
+}
+```
+
+#### 4.3 QuestionnaireResponse Event Kafka Destination
+
+Create subscription for QuestionnaireResponse events:
+
+```json
+{
+  "resourceType": "Subscription",
+  "id": "response-kafka-subscription",
+  "status": "active",
+  "criteria": "QuestionnaireResponse", 
+  "topic": "https://your-aidbox-instance/SubscriptionTopic/form-populated",
+  "channel": {
+    "type": "rest-hook",
+    "endpoint": "kafka://your-kafka-cluster:9092/form.populated",
+    "payload": "application/fhir+json",
+    "header": [
+      "Authorization: Bearer YOUR_SERVICE_TOKEN"
+    ]
+  },
+  "reason": "Form population completion events"
+}
+```
+
+#### 4.4 Configure Kafka Integration
+
+Create the subscription destinations:
+
+```bash
+# Create Patient event subscription
+curl -X PUT https://your-aidbox-instance/Subscription/patient-kafka-subscription \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @patient-kafka-subscription.json
+
+# Create Questionnaire event subscription
+curl -X PUT https://your-aidbox-instance/Subscription/questionnaire-kafka-subscription \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @questionnaire-kafka-subscription.json
+
+# Create QuestionnaireResponse event subscription
+curl -X PUT https://your-aidbox-instance/Subscription/response-kafka-subscription \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @response-kafka-subscription.json
+```
+
+### Step 5: Validation and Testing
+
+#### 5.1 Validate Client Configuration
+
+Test OAuth2 client authentication:
+
+```bash
+# Test client credentials flow
+TOKEN_RESPONSE=$(curl -X POST https://your-aidbox-instance/auth/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials&client_id=form-auto-population-service&client_secret=YOUR_CLIENT_SECRET")
+
+# Extract access token
+ACCESS_TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.access_token')
+
+# Test FHIR resource access
+curl -X GET https://your-aidbox-instance/Patient \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+```
+
+#### 5.2 Validate Access Policies
+
+Test resource access permissions:
+
+```bash
+# Test Questionnaire access
+curl -X GET https://your-aidbox-instance/Questionnaire \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+
+# Test QuestionnaireResponse access  
+curl -X GET https://your-aidbox-instance/QuestionnaireResponse \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+
+# Test Patient read-only access
+curl -X GET https://your-aidbox-instance/Patient/test-patient-id \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+```
+
+#### 5.3 Validate Subscription Configuration
+
+Check subscription status and event delivery:
+
+```bash
+# Check subscription topics status
+curl -X GET https://your-aidbox-instance/SubscriptionTopic \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+
+# Check active subscriptions
+curl -X GET https://your-aidbox-instance/Subscription \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+
+# Monitor Kafka topics for event delivery
+kafka-console-consumer --bootstrap-server your-kafka-cluster:9092 \
+  --topic form.population.requested \
+  --from-beginning
+```
+
+#### 5.4 Integration Testing
+
+Perform end-to-end workflow testing:
+
+```bash
+# Create test Patient resource
+curl -X POST https://your-aidbox-instance/Patient \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resourceType": "Patient",
+    "id": "test-patient-001",
+    "name": [{"family": "Test", "given": ["Patient"]}],
+    "birthDate": "1990-01-01"
+  }'
+
+# Verify event delivery to Kafka
+# Check that Patient creation event appears in form.population.requested topic
+
+# Create test Questionnaire
+curl -X POST https://your-aidbox-instance/Questionnaire \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resourceType": "Questionnaire",
+    "id": "test-form-001",
+    "status": "active",
+    "item": [
+      {
+        "linkId": "patient-name",
+        "text": "Patient Name",
+        "type": "string"
+      }
+    ]
+  }'
+
+# Verify Questionnaire creation event delivery
+```
+
+### Security and Compliance Considerations
+
+#### HIPAA Technical Safeguards
+
+- **Access Control**: All API access requires valid OAuth2 tokens with minimal necessary scopes
+- **Audit Controls**: All configuration changes and resource access are logged
+- **Integrity**: TLS encryption protects data in transit; database encryption protects data at rest  
+- **Person or Entity Authentication**: OAuth2 client authentication validates service identity
+- **Transmission Security**: All communications use TLS 1.2+ with strong cipher suites
+
+#### FHIR R4 Compliance
+
+- **Resource Validation**: All FHIR resources conform to R4 specification
+- **Interaction Compliance**: Subscription interactions follow FHIR R4 subscription patterns
+- **Security Standards**: OAuth2 and SMART on FHIR security framework implementation
+- **Event Model**: Subscription topics and destinations follow FHIR R4 event architecture
+
+#### Production Environment Recommendations
+
+- **High Availability**: Configure multiple Aidbox instances behind a load balancer
+- **Backup Strategy**: Implement automated backups of FHIR data and configuration
+- **Monitoring**: Set up comprehensive monitoring of subscription delivery and system health
+- **Disaster Recovery**: Document and test disaster recovery procedures
+- **Performance Tuning**: Monitor and optimize database queries and Kafka throughput
+
+### Troubleshooting Manual Configuration
+
+#### Common Configuration Issues
+
+1. **OAuth2 Authentication Failures**
+   - Verify client ID and secret are correct
+   - Check client grant types include "client_credentials"
+   - Ensure client scopes match required FHIR resources
+
+2. **Access Policy Violations**
+   - Verify access policies are applied and active
+   - Check resource type and action permissions
+   - Validate client is included in policy subjects
+
+3. **Subscription Delivery Failures**
+   - Check subscription status is "active"
+   - Verify Kafka endpoints are reachable
+   - Monitor subscription error logs in Aidbox
+
+4. **Event Processing Issues**
+   - Validate subscription topic criteria
+   - Check Kafka consumer group configuration
+   - Verify event payload format matches expectations
+
+#### Configuration Validation Commands
+
+```bash
+# Validate client configuration
+curl -X GET https://your-aidbox-instance/Client/form-auto-population-service \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+
+# Check access policy status
+curl -X GET https://your-aidbox-instance/AccessPolicy \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+
+# Monitor subscription health
+curl -X GET https://your-aidbox-instance/Subscription?status=active \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+
+# Test Kafka connectivity
+kafka-topics --bootstrap-server your-kafka-cluster:9092 --list
+```
+
+For additional support with manual configuration, refer to the [Aidbox documentation](https://docs.aidbox.app/) and ensure all changes are documented for compliance audit trails.
+
 ## Service Endpoints
 
 ### HTTP API
