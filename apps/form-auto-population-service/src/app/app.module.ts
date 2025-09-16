@@ -25,9 +25,11 @@ import { HealthController } from './health.controller';
           configService.get('AIDBOX_URL') ||
           configService.get('FHIR_SERVER_URL');
         const clientId =
+          configService.get('FORM_AUTOPOPULATION_CLIENT_ID') ||
           configService.get('AIDBOX_CLIENT_ID') ||
           configService.get('FHIR_CLIENT_ID');
         const clientSecret =
+          configService.get('FORM_AUTOPOPULATION_CLIENT_SECRET') ||
           configService.get('AIDBOX_CLIENT_SECRET') ||
           configService.get('FHIR_CLIENT_SECRET');
 
@@ -39,13 +41,13 @@ import { HealthController } from './health.controller';
 
         if (!clientId) {
           throw new Error(
-            'FHIR client ID is required. Set AIDBOX_CLIENT_ID or FHIR_CLIENT_ID environment variable.'
+            'FHIR client ID is required. Set FORM_AUTOPOPULATION_CLIENT_ID, AIDBOX_CLIENT_ID, or FHIR_CLIENT_ID environment variable.'
           );
         }
 
         if (!clientSecret) {
           throw new Error(
-            'FHIR client secret is required. Set AIDBOX_CLIENT_SECRET or FHIR_CLIENT_SECRET environment variable.'
+            'FHIR client secret is required. Set FORM_AUTOPOPULATION_CLIENT_SECRET, AIDBOX_CLIENT_SECRET, or FHIR_CLIENT_SECRET environment variable.'
           );
         }
 
