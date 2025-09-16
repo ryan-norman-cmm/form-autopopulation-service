@@ -5,12 +5,18 @@ import { FormPopulationService } from './form-population.service';
 interface FormPopulationCompletedEvent {
   formId: string;
   patientId: string;
-  wegovyOutput: Array<{
+  questionnaireOutput: Array<{
     question_id: string;
     question_text: string;
     answer: string | number | boolean | string[];
   }>;
   timestamp: string;
+  // Backward compatibility field
+  wegovyOutput?: Array<{
+    question_id: string;
+    question_text: string;
+    answer: string | number | boolean | string[];
+  }>;
 }
 
 @Controller()

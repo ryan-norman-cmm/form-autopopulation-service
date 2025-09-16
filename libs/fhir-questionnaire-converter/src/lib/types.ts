@@ -1,13 +1,19 @@
 /**
- * Wegovy AI output structure
+ * Generic questionnaire output structure from AI processing
  */
-export interface WegovyOutputItem {
+export interface QuestionnaireOutputItem {
   question_id: string;
   question_text: string;
   answer: string | number | boolean | string[];
 }
 
-export type WegovyOutput = WegovyOutputItem[];
+export type QuestionnaireOutput = QuestionnaireOutputItem[];
+
+// Backward compatibility aliases
+/** @deprecated Use QuestionnaireOutputItem instead */
+export type WegovyOutputItem = QuestionnaireOutputItem;
+/** @deprecated Use QuestionnaireOutput instead */
+export type WegovyOutput = QuestionnaireOutput;
 
 /**
  * Metadata required for FHIR QuestionnaireResponse

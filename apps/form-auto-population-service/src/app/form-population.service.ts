@@ -2,15 +2,19 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { FhirService } from '@form-auto-population/fhir-client';
 import {
   convertToQuestionnaireResponse,
-  WegovyOutput,
+  QuestionnaireOutput,
   QuestionnaireResponseMetadata,
+  // Backward compatibility 
+  WegovyOutput,
 } from '@form-auto-population/fhir-questionnaire-converter';
 
 interface FormPopulationCompletedEvent {
   formId: string;
   patientId: string;
-  wegovyOutput: WegovyOutput;
+  questionnaireOutput: QuestionnaireOutput;
   timestamp: string;
+  // Backward compatibility field
+  wegovyOutput?: WegovyOutput;
 }
 
 @Injectable()
@@ -22,7 +26,7 @@ export class FormPopulationService {
   ) {}
 
   /**
-   * Create FHIR QuestionnaireResponse from Wegovy AI output
+   * Create FHIR QuestionnaireResponse from generic questionnaire AI output
    */
   async createQuestionnaireResponse(
     event: FormPopulationCompletedEvent
@@ -31,14 +35,20 @@ export class FormPopulationService {
       `Creating QuestionnaireResponse for form: ${event.formId}, patient: ${event.patientId}`
     );
 
-    // Convert Wegovy AI output to FHIR QuestionnaireResponse using the library
+    // Support backward compatibility with wegovyOutput field
+    const output = event.questionnaireOutput || event.wegovyOutput;
+    if (!output) {
+      throw new Error('No questionnaire output provided in event');
+    }
+
+    // Convert generic questionnaire AI output to FHIR QuestionnaireResponse using the library
     const metadata: QuestionnaireResponseMetadata = {
       formId: event.formId,
       patientId: event.patientId,
       timestamp: event.timestamp,
     };
     const questionnaireResponse = convertToQuestionnaireResponse(
-      event.wegovyOutput,
+      output,
       metadata
     );
 

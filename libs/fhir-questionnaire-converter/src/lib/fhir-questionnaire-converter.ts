@@ -1,22 +1,23 @@
 import { formatAnswer } from './answer-formatter';
 import {
-  WegovyOutput,
+  QuestionnaireOutput,
   QuestionnaireResponseMetadata,
   FhirQuestionnaireResponse,
   FhirQuestionnaireResponseItem,
 } from './types';
 
 /**
- * Convert Wegovy AI output to FHIR QuestionnaireResponse format
+ * Convert generic questionnaire AI output to FHIR QuestionnaireResponse format
+ * Supports any questionnaire type, not just Wegovy-specific outputs
  */
 export function convertToQuestionnaireResponse(
-  wegovyOutput: WegovyOutput,
+  questionnaireOutput: QuestionnaireOutput,
   metadata: QuestionnaireResponseMetadata
 ): FhirQuestionnaireResponse {
-  const items: FhirQuestionnaireResponseItem[] = wegovyOutput.map((item) => ({
+  const items: FhirQuestionnaireResponseItem[] = questionnaireOutput.map((item) => ({
     linkId: item.question_id,
     text: item.question_text,
-    answer: formatAnswer(item.answer, item.question_id),
+    answer: formatAnswer(item.answer),
   }));
 
   return {
