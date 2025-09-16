@@ -1,15 +1,7 @@
 import { Kafka, Producer, logLevel } from 'kafkajs';
+import { FormPopulationCompletedEvent } from '@form-auto-population/fhir-questionnaire-converter';
 
-export interface FormPopulationCompletedEvent {
-  formId: string;
-  patientId: string;
-  wegovyOutput: Array<{
-    question_id: string;
-    question_text: string;
-    answer: string | number | boolean | string[];
-  }>;
-  timestamp: string;
-}
+export type { FormPopulationCompletedEvent };
 
 export class KafkaProducer {
   private kafka: Kafka;

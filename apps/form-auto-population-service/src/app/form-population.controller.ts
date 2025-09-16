@@ -1,23 +1,7 @@
 import { Controller, Logger } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { FormPopulationService } from './form-population.service';
-
-interface FormPopulationCompletedEvent {
-  formId: string;
-  patientId: string;
-  questionnaireOutput: Array<{
-    question_id: string;
-    question_text: string;
-    answer: string | number | boolean | string[];
-  }>;
-  timestamp: string;
-  // Backward compatibility field
-  wegovyOutput?: Array<{
-    question_id: string;
-    question_text: string;
-    answer: string | number | boolean | string[];
-  }>;
-}
+import { FormPopulationCompletedEvent } from '@form-auto-population/fhir-questionnaire-converter';
 
 @Controller()
 export class FormPopulationController {

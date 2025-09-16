@@ -9,18 +9,19 @@ export interface QuestionnaireOutputItem {
 
 export type QuestionnaireOutput = QuestionnaireOutputItem[];
 
-// Backward compatibility aliases
-/** @deprecated Use QuestionnaireOutputItem instead */
-export type WegovyOutputItem = QuestionnaireOutputItem;
-/** @deprecated Use QuestionnaireOutput instead */
-export type WegovyOutput = QuestionnaireOutput;
-
 /**
  * Metadata required for FHIR QuestionnaireResponse
  */
 export interface QuestionnaireResponseMetadata {
   formId: string;
   patientId: string;
+  timestamp: string;
+}
+
+export interface FormPopulationCompletedEvent {
+  formId: string;
+  patientId: string;
+  questionnaireOutput: QuestionnaireOutput;
   timestamp: string;
 }
 

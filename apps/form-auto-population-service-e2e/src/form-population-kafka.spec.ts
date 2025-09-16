@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { WegovyOutput } from '@form-auto-population/fhir-questionnaire-converter';
+import { QuestionnaireOutput } from '@form-auto-population/fhir-questionnaire-converter';
 import express from 'express';
 import { Server } from 'http';
 import { KafkaProducer, FormPopulationCompletedEvent } from './kafka-producer';
 
-// Test data - subset of Wegovy AI output for testing
-const WEGOVY_TEST_DATA: WegovyOutput = [
+// Test data - sample questionnaire AI output for testing
+const QUESTIONNAIRE_TEST_DATA: QuestionnaireOutput = [
   {
     question_id: 'patient-age',
     question_text: 'Patient Age',
@@ -91,7 +91,7 @@ test.beforeEach(async () => {
   createdResources = [];
 });
 
-test('End-to-end Kafka form auto-population with real service', async ({
+test('End-to-end Kafka questionnaire auto-population with real service', async ({
   request,
 }) => {
   // Check if the service is configured for testing
@@ -118,9 +118,9 @@ test('End-to-end Kafka form auto-population with real service', async ({
   }).toPass({ timeout: 5000 });
 
   const testEvent: FormPopulationCompletedEvent = {
-    formId: 'wegovy-intake',
+    formId: 'healthcare-intake',
     patientId: 'patient-123',
-    wegovyOutput: WEGOVY_TEST_DATA,
+    questionnaireOutput: QUESTIONNAIRE_TEST_DATA,
     timestamp: '2025-09-13T10:00:00Z',
   };
 
@@ -148,7 +148,7 @@ test('End-to-end Kafka form auto-population with real service', async ({
   expect(questionnaireResponse.resourceType).toBe('QuestionnaireResponse');
   expect(questionnaireResponse.status).toBe('completed');
   expect(questionnaireResponse.questionnaire).toBe(
-    'Questionnaire/wegovy-intake'
+    'Questionnaire/healthcare-intake'
   );
   expect(questionnaireResponse.subject.reference).toBe('Patient/patient-123');
   expect(questionnaireResponse.authored).toBe('2025-09-13T10:00:00Z');

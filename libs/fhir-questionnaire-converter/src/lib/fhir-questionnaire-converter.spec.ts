@@ -1,9 +1,5 @@
 import { convertToQuestionnaireResponse } from './fhir-questionnaire-converter';
-import {
-  QuestionnaireOutput,
-  QuestionnaireResponseMetadata,
-  WegovyOutput,
-} from './types';
+import { QuestionnaireOutput, QuestionnaireResponseMetadata } from './types';
 
 describe('convertToQuestionnaireResponse', () => {
   const mockMetadata: QuestionnaireResponseMetadata = {
@@ -174,22 +170,6 @@ describe('convertToQuestionnaireResponse', () => {
     expect(result.meta.lastUpdated).toMatch(
       /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/
     );
-  });
-
-  it('should maintain backward compatibility with WegovyOutput type', () => {
-    const wegovyOutput: WegovyOutput = [
-      {
-        question_id: 'patient-age',
-        question_text: 'Patient Age',
-        answer: 45,
-      },
-    ];
-
-    const result = convertToQuestionnaireResponse(wegovyOutput, mockMetadata);
-
-    expect(result.resourceType).toBe('QuestionnaireResponse');
-    expect(result.item).toHaveLength(1);
-    expect(result.item[0].linkId).toBe('patient-age');
   });
 
   it('should handle generic survey questionnaire', () => {

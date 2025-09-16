@@ -8,7 +8,7 @@ import {
 
 /**
  * Convert generic questionnaire AI output to FHIR QuestionnaireResponse format
- * Supports any questionnaire type, not just Wegovy-specific outputs
+ * Supports any questionnaire type for healthcare form auto-population
  */
 export function convertToQuestionnaireResponse(
   questionnaireOutput: QuestionnaireOutput,

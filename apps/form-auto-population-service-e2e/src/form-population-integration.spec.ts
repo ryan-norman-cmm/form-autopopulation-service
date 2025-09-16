@@ -1,14 +1,14 @@
 import { test, expect } from '@playwright/test';
 import {
-  WegovyOutput,
+  QuestionnaireOutput,
   convertToQuestionnaireResponse,
 } from '@form-auto-population/fhir-questionnaire-converter';
 import express from 'express';
 import { Server } from 'http';
 import { KafkaProducer, FormPopulationCompletedEvent } from './kafka-producer';
 
-// Test data - subset of Wegovy AI output for testing
-const WEGOVY_TEST_DATA: WegovyOutput = [
+// Test data - sample questionnaire AI output for testing
+const QUESTIONNAIRE_TEST_DATA: QuestionnaireOutput = [
   {
     question_id: 'patient-age',
     question_text: 'Patient Age',
@@ -122,9 +122,7 @@ test.afterAll(async () => {
   if (kafkaProducer) {
     await kafkaProducer.disconnect();
   }
-  if (serviceProcess) {
-    serviceProcess.kill();
-  }
+  // Service cleanup handled by external process management
 });
 
 test.beforeEach(async () => {
@@ -138,9 +136,9 @@ test.describe('Form Auto-Population Integration Tests', () => {
     // Use the converter function from static import
 
     const questionnaireResponse = convertToQuestionnaireResponse(
-      WEGOVY_TEST_DATA,
+      QUESTIONNAIRE_TEST_DATA,
       {
-        formId: 'wegovy-intake',
+        formId: 'healthcare-intake',
         patientId: 'patient-123',
         timestamp: '2025-09-13T10:00:00Z',
       }
@@ -205,7 +203,7 @@ test.describe('Form Auto-Population Integration Tests', () => {
     const testEvent: FormPopulationCompletedEvent = {
       formId: 'wegovy-intake',
       patientId: 'patient-123-kafka',
-      wegovyOutput: WEGOVY_TEST_DATA,
+      questionnaireOutput: QUESTIONNAIRE_TEST_DATA,
       timestamp: '2025-09-13T10:00:00Z',
     };
 
@@ -259,7 +257,7 @@ test.describe('Form Auto-Population Integration Tests', () => {
     expect(questionnaireResponse.resourceType).toBe('QuestionnaireResponse');
     expect(questionnaireResponse.status).toBe('completed');
     expect(questionnaireResponse.questionnaire).toBe(
-      'Questionnaire/wegovy-intake'
+      'Questionnaire/healthcare-intake'
     );
     expect(questionnaireResponse.subject.reference).toBe(
       'Patient/patient-123-kafka'

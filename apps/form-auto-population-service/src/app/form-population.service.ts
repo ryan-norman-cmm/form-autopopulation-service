@@ -2,20 +2,9 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { FhirService } from '@form-auto-population/fhir-client';
 import {
   convertToQuestionnaireResponse,
-  QuestionnaireOutput,
   QuestionnaireResponseMetadata,
-  // Backward compatibility
-  WegovyOutput,
+  FormPopulationCompletedEvent,
 } from '@form-auto-population/fhir-questionnaire-converter';
-
-interface FormPopulationCompletedEvent {
-  formId: string;
-  patientId: string;
-  questionnaireOutput: QuestionnaireOutput;
-  timestamp: string;
-  // Backward compatibility field
-  wegovyOutput?: WegovyOutput;
-}
 
 @Injectable()
 export class FormPopulationService {
@@ -35,9 +24,7 @@ export class FormPopulationService {
       `Creating QuestionnaireResponse for form: ${event.formId}, patient: ${event.patientId}`
     );
 
-    // Support backward compatibility with wegovyOutput field
-    const output = event.questionnaireOutput || event.wegovyOutput;
-    if (!output) {
+    if (!event.questionnaireOutput) {
       throw new Error('No questionnaire output provided in event');
     }
 
@@ -48,7 +35,7 @@ export class FormPopulationService {
       timestamp: event.timestamp,
     };
     const questionnaireResponse = convertToQuestionnaireResponse(
-      output,
+      event.questionnaireOutput,
       metadata
     );
 
