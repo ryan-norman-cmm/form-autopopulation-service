@@ -53,7 +53,12 @@
       "Bash(fi)",
       "Bash(npm test:*)",
       "Bash(npx nx run:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:aidbox.app)",
+      "WebSearch",
+      "WebFetch(domain:docs.aidbox.app)",
+      "WebFetch(domain:www.health-samurai.io)",
+      "Bash(bash:*)"
     ],
     "deny": [],
     "ask": []
