@@ -1,4 +1,3 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { HealthController } from './health.controller';
 import { AppConfigService } from '@form-auto-population/config';
 
@@ -27,24 +26,17 @@ vi.mock('axios', () => ({
 
 describe('HealthController', () => {
   let controller: HealthController;
-  let configService: AppConfigService;
+  let mockConfigService: AppConfigService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [HealthController],
-      providers: [
-        {
-          provide: AppConfigService,
-          useValue: {
-            kafkaBootstrapServers: 'localhost:9092',
-            fhirServerUrl: 'http://localhost:8081',
-          },
-        },
-      ],
-    }).compile();
+  beforeEach(() => {
+    // Create a mock service
+    mockConfigService = {
+      kafkaBootstrapServers: 'localhost:9092',
+      fhirServerUrl: 'http://localhost:8081',
+    } as AppConfigService;
 
-    controller = module.get<HealthController>(HealthController);
-    configService = module.get<AppConfigService>(AppConfigService);
+    // Directly instantiate the controller with the mock
+    controller = new HealthController(mockConfigService);
   });
 
   it('should be defined', () => {
@@ -54,12 +46,8 @@ describe('HealthController', () => {
   describe('getHealth', () => {
     it('should return unhealthy status when services not configured', async () => {
       // Mock config service to return undefined for required services
-      vi.spyOn(configService, 'kafkaBootstrapServers', 'get').mockReturnValue(
-        undefined as any
-      );
-      vi.spyOn(configService, 'fhirServerUrl', 'get').mockReturnValue(
-        undefined as any
-      );
+      mockConfigService.kafkaBootstrapServers = undefined as unknown as string;
+      mockConfigService.fhirServerUrl = undefined as unknown as string;
 
       const result = await controller.getHealth();
 
@@ -86,8 +74,6 @@ describe('HealthController', () => {
     });
 
     it('should check Kafka connection when configured', async () => {
-      // Config service already has default values configured
-
       const result = await controller.getHealth();
 
       expect(result.checks.kafka.status).toBe('connected');
@@ -96,8 +82,6 @@ describe('HealthController', () => {
     });
 
     it('should check FHIR server connection when configured', async () => {
-      // Config service already has default values configured
-
       const result = await controller.getHealth();
 
       expect(result.checks.fhirServer.status).toBe('connected');
@@ -107,8 +91,6 @@ describe('HealthController', () => {
     });
 
     it('should return healthy status when all required services are connected', async () => {
-      // Config service already has default values configured
-
       const result = await controller.getHealth();
 
       expect(result.status).toBe('ok');
