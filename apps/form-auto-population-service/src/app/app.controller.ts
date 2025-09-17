@@ -1,7 +1,7 @@
 import { Controller, Post, Inject } from '@nestjs/common';
 import { FhirService } from '@form-auto-population/fhir-client';
 
-@Controller('api/forms')
+@Controller('forms')
 export class AppController {
   constructor(
     @Inject('FHIR_SERVICE') private readonly fhirService: FhirService
