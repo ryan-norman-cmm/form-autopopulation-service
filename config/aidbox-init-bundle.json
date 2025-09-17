@@ -16,8 +16,7 @@
         "scope": [
           "system/Patient.read",
           "system/Questionnaire.*",
-          "system/QuestionnaireResponse.*",
-          "system/Subscription.*"
+          "system/QuestionnaireResponse.*"
         ]
       }
     },
@@ -124,51 +123,6 @@
           },
           "uri": "#^/fhir/QuestionnaireResponse.*$"
         }
-      }
-    },
-    {
-      "request": {
-        "method": "POST",
-        "url": "AidboxSubscriptionTopic"
-      },
-      "resource": {
-        "resourceType": "AidboxSubscriptionTopic",
-        "id": "questionnaire-response.auto-populated.created",
-        "url": "http://example.org/FHIR/R5/SubscriptionTopic/QuestionnaireResponse-Autopopulation-topic",
-        "status": "active",
-        "trigger": [
-          {
-            "resource": "QuestionnaireResponse",
-            "supportedInteraction": ["create"]
-          }
-        ]
-      }
-    },
-    {
-      "request": {
-        "method": "POST",
-        "url": "AidboxTopicDestination"
-      },
-      "resource": {
-        "resourceType": "AidboxTopicDestination",
-        "meta": {
-          "profile": [
-            "http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-at-least-once"
-          ]
-        },
-        "kind": "kafka-at-least-once",
-        "id": "questionnaire-response-autopulation-create-kafka",
-        "topic": "http://example.org/FHIR/R5/SubscriptionTopic/QuestionnaireResponse-Autopopulation-topic",
-        "parameter": [
-          {
-            "name": "kafkaTopic",
-            "valueString": "{{FORM_POPULATION_COMPLETED_TOPIC}}"
-          },
-          {
-            "name": "bootstrapServers",
-            "valueString": "{{KAFKA_INTERNAL_HOST}}:{{KAFKA_INTERNAL_PORT}}"
-          }
-        ]
       }
     }
   ]
