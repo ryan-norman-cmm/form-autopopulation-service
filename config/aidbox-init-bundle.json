@@ -65,33 +65,12 @@
     },
     {
       "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/subscription-access-policy"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "subscription-access-policy",
-        "description": "Allow form-auto-population-service to access Subscription resources",
-        "engine": "sql",
-        "sql": {
-          "query": "SELECT true WHERE request.params.resource/type = 'Subscription'"
-        },
-        "link": [
-          {
-            "resourceType": "Client",
-            "id": "form-auto-population-service"
-          }
-        ]
-      }
-    },
-    {
-      "request": {
         "method": "POST",
         "url": "AidboxSubscriptionTopic"
       },
       "resource": {
         "resourceType": "AidboxSubscriptionTopic",
-        "id": "questionnaire-response-topic",
+        "id": "questionnaire-response.auto-populated.created",
         "url": "http://example.org/FHIR/R5/SubscriptionTopic/QuestionnaireResponse-topic",
         "status": "active",
         "trigger": [
@@ -114,8 +93,8 @@
             "http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-best-effort"
           ]
         },
-        "kind": "kafka-best-effort",
-        "id": "kafka-destination",
+        "kind": "kafka-at-least-once",
+        "id": "queestionnaire-response-destination",
         "topic": "http://example.org/FHIR/R5/SubscriptionTopic/QuestionnaireResponse-topic",
         "parameter": [
           {
