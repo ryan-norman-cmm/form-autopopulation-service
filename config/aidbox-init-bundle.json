@@ -24,47 +24,85 @@
     {
       "request": {
         "method": "PUT",
-        "url": "AccessPolicy/questionnaire-access-policy"
+        "url": "AccessPolicy/as-client-questionnaire-read"
       },
       "resource": {
         "resourceType": "AccessPolicy",
-        "id": "questionnaire-access-policy",
-        "description": "Allow form-auto-population-service to access Questionnaire resources",
+        "id": "as-client-questionnaire-read",
+        "description": "Allow form-auto-population-service to read and search Questionnaire resources",
         "engine": "matcho",
         "matcho": {
-          "params": {
-            "resource/type": "Questionnaire"
-          }
-        },
-        "link": [
-          {
-            "resourceType": "Client",
+          "client": {
             "id": "form-auto-population-service"
-          }
-        ]
+          },
+          "request-method": {
+            "$enum": ["get"]
+          },
+          "uri": "#^/fhir/Questionnaire.*$"
+        }
       }
     },
     {
       "request": {
         "method": "PUT",
-        "url": "AccessPolicy/questionnaireresponse-access-policy"
+        "url": "AccessPolicy/as-client-questionnaire-write"
       },
       "resource": {
         "resourceType": "AccessPolicy",
-        "id": "questionnaireresponse-access-policy",
-        "description": "Allow form-auto-population-service to access QuestionnaireResponse resources",
+        "id": "as-client-questionnaire-write",
+        "description": "Allow form-auto-population-service to create, update, delete Questionnaire resources",
         "engine": "matcho",
         "matcho": {
-          "params": {
-            "resource/type": "QuestionnaireResponse"
-          }
-        },
-        "link": [
-          {
-            "resourceType": "Client",
+          "client": {
             "id": "form-auto-population-service"
-          }
-        ]
+          },
+          "request-method": {
+            "$enum": ["post", "put", "patch", "delete"]
+          },
+          "uri": "#^/fhir/Questionnaire.*$"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "AccessPolicy/as-client-questionnaireresponse-read"
+      },
+      "resource": {
+        "resourceType": "AccessPolicy",
+        "id": "as-client-questionnaireresponse-read",
+        "description": "Allow form-auto-population-service to read and search QuestionnaireResponse resources",
+        "engine": "matcho",
+        "matcho": {
+          "client": {
+            "id": "form-auto-population-service"
+          },
+          "request-method": {
+            "$enum": ["get"]
+          },
+          "uri": "#^/fhir/QuestionnaireResponse.*$"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "AccessPolicy/as-client-questionnaireresponse-write"
+      },
+      "resource": {
+        "resourceType": "AccessPolicy",
+        "id": "as-client-questionnaireresponse-write",
+        "description": "Allow form-auto-population-service to create, update QuestionnaireResponse resources",
+        "engine": "matcho",
+        "matcho": {
+          "client": {
+            "id": "form-auto-population-service"
+          },
+          "request-method": {
+            "$enum": ["post", "put", "patch"]
+          },
+          "uri": "#^/fhir/QuestionnaireResponse.*$"
+        }
       }
     },
     {
@@ -75,12 +113,12 @@
       "resource": {
         "resourceType": "AidboxSubscriptionTopic",
         "id": "questionnaire-response.auto-populated.created",
-        "url": "http://example.org/FHIR/R5/SubscriptionTopic/QuestionnaireResponse-topic",
+        "url": "http://example.org/FHIR/R5/SubscriptionTopic/QuestionnaireResponse-Autopopulation-topic",
         "status": "active",
         "trigger": [
           {
             "resource": "QuestionnaireResponse",
-            "fhirPathCriteria": "status = 'completed' or status = 'amended'"
+            "supportedInteraction": ["create"]
           }
         ]
       }
@@ -94,12 +132,12 @@
         "resourceType": "AidboxTopicDestination",
         "meta": {
           "profile": [
-            "http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-best-effort"
+            "http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-at-least-once"
           ]
         },
         "kind": "kafka-at-least-once",
-        "id": "queestionnaire-response-destination",
-        "topic": "http://example.org/FHIR/R5/SubscriptionTopic/QuestionnaireResponse-topic",
+        "id": "questionnaire-response-autopulation-create-kafka",
+        "topic": "http://example.org/FHIR/R5/SubscriptionTopic/QuestionnaireResponse-Autopopulation-topic",
         "parameter": [
           {
             "name": "kafkaTopic",
