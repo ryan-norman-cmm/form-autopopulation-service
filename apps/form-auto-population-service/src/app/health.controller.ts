@@ -10,7 +10,8 @@ export class HealthController {
   @Get()
   async getHealth() {
     let kafkaStatus = 'unknown';
-    let externalApiStatus = 'unknown';
+    let fhirServerStatus = 'unknown';
+    let fhirServerDetails = {};
 
     // Check Kafka connection if configured
     if (this.configService.kafkaBootstrapServers) {
@@ -38,7 +39,7 @@ export class HealthController {
       kafkaStatus = 'not-configured';
     }
 
-    // Check external APIs (FHIR server) - REQUIRED
+    // Check FHIR server - REQUIRED
     if (this.configService.fhirServerUrl) {
       try {
         const fhirUrl = this.configService.fhirServerUrl;
@@ -50,18 +51,32 @@ export class HealthController {
         });
 
         const isHealthy = response.status === 200;
-        externalApiStatus = isHealthy ? 'connected' : 'unavailable';
-      } catch {
-        externalApiStatus = 'disconnected';
+        fhirServerStatus = isHealthy ? 'connected' : 'unavailable';
+        fhirServerDetails = {
+          url: fhirUrl,
+          responseStatus: response.status,
+          responseTime: response.headers['x-response-time'] || 'unknown',
+          lastChecked: new Date().toISOString(),
+        };
+      } catch (error) {
+        fhirServerStatus = 'disconnected';
+        fhirServerDetails = {
+          url: this.configService.fhirServerUrl,
+          error: error instanceof Error ? error.message : 'Connection failed',
+          lastChecked: new Date().toISOString(),
+        };
       }
     } else {
       // FHIR server is required for this service
-      externalApiStatus = 'not-configured';
+      fhirServerStatus = 'not-configured';
+      fhirServerDetails = {
+        error: 'AIDBOX_URL environment variable not configured',
+      };
     }
 
     // Service is only healthy if all required services are working
     const allHealthy =
-      kafkaStatus === 'connected' && externalApiStatus === 'connected';
+      kafkaStatus === 'connected' && fhirServerStatus === 'connected';
 
     return {
       status: allHealthy ? 'ok' : 'unhealthy',
@@ -69,11 +84,19 @@ export class HealthController {
       service: 'form-auto-population-service',
       version: '1.0.0',
       checks: {
-        kafka: kafkaStatus,
-        externalApi: externalApiStatus,
+        kafka: {
+          status: kafkaStatus,
+          brokers: this.configService.kafkaBootstrapServers?.split(',') || [],
+          required: true,
+        },
+        fhirServer: {
+          status: fhirServerStatus,
+          ...fhirServerDetails,
+          required: true,
+        },
       },
       uptime: process.uptime(),
-      required: ['kafka', 'externalApi'],
+      required: ['kafka', 'fhirServer'],
     };
   }
 }
