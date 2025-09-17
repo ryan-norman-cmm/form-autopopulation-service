@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { plainToInstance } from 'class-transformer';
-import { validateSync } from 'class-validator';
+import { validateSync, ValidationError } from 'class-validator';
 import {
   Config,
   AppConfig,
@@ -45,7 +45,7 @@ export function configFactory(): Config {
   });
 
   if (errors.length > 0) {
-    const formatErrors = (errors: any[], prefix = ''): string[] => {
+    const formatErrors = (errors: ValidationError[], prefix = ''): string[] => {
       const messages: string[] = [];
 
       for (const error of errors) {
