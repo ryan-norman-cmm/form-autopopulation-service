@@ -36,27 +36,27 @@ generate_password() {
 # Check if required tools are available
 check_dependencies() {
     log_info "Checking dependencies..."
-    
+
     local missing_deps=()
-    
+
     if ! command -v openssl &> /dev/null; then
         missing_deps+=("openssl")
     fi
-    
+
     if ! command -v curl &> /dev/null; then
         missing_deps+=("curl")
     fi
-    
+
     if ! command -v docker &> /dev/null; then
         missing_deps+=("docker")
     fi
-    
+
     if [ ${#missing_deps[@]} -ne 0 ]; then
         log_error "Missing required dependencies: ${missing_deps[*]}"
         log_error "Please install them and try again."
         exit 1
     fi
-    
+
     log_success "All dependencies found"
 }
 
@@ -81,88 +81,112 @@ open_browser() {
 
 # Get Aidbox license from user
 get_aidbox_license() {
-    log_info "Aidbox FHIR server requires a development license (free, 100-year validity)"
-    echo ""
-    echo "📋 License acquisition steps:"
-    echo "   1. Sign up at Aidbox portal (opening in browser...)"
-    echo "   2. Verify your email and complete profile setup"
-    echo "   3. Navigate to: Licenses → New license → Dev → Self-Hosted → Create"
-    echo "   4. Copy the generated license key"
-    echo ""
-    
+    log_info "Aidbox FHIR server requires a development license (free, 100-year validity)" >&2
+    echo "" >&2
+    echo "📋 License acquisition steps:" >&2
+    echo "   1. Sign up at Aidbox portal (opening in browser...)" >&2
+    echo "   2. Verify your email and complete profile setup" >&2
+    echo "   3. Navigate to: Licenses → New license → Dev → Self-Hosted → Create" >&2
+    echo "   4. Copy the generated license key" >&2
+    echo "" >&2
+
     # Open the Aidbox signup page
-    log_info "Opening Aidbox signup page..."
-    if open_browser "https://aidbox.app/ui/portal#/signup"; then
-        log_success "Browser opened successfully"
+    log_info "Opening Aidbox signup page..." >&2
+    if open_browser "https://aidbox.app/ui/portal#/signup" >&2; then
+        log_success "Browser opened successfully" >&2
     else
-        log_warning "Please manually visit: https://aidbox.app/ui/portal#/signup"
+        log_warning "Please manually visit: https://aidbox.app/ui/portal#/signup" >&2
     fi
-    
-    echo ""
-    log_info "After creating your account and license, you'll be redirected to create a new license."
-    log_info "Choose the following options:"
-    echo "   - License type: Dev"
-    echo "   - Goal: Development"
-    echo "   - Hosting: Self-hosted"
-    echo "   - FHIR version: 4.0.1 (recommended)"
-    echo ""
-    
+
+    echo "" >&2
+    log_info "After creating your account and license, you'll be redirected to create a new license." >&2
+    log_info "Choose the following options:" >&2
+    echo "   - License type: Dev" >&2
+    echo "   - Goal: Development" >&2
+    echo "   - Hosting: Self-hosted" >&2
+    echo "   - FHIR version: 4.0.1 (recommended)" >&2
+    echo "" >&2
+
     # Wait for user to get license
     local license_key=""
     while [ -z "$license_key" ]; do
-        echo -n "Please enter your Aidbox development license key: "
+        echo -n "Please enter your Aidbox development license key: " >&2
         read -r license_key
-        
+
         if [ -z "$license_key" ]; then
-            log_error "License key cannot be empty. Please try again."
+            log_error "License key cannot be empty. Please try again." >&2
         elif [ ${#license_key} -lt 10 ]; then
-            log_error "License key seems too short. Please check and try again."
+            log_error "License key seems too short. Please check and try again." >&2
             license_key=""
         fi
     done
-    
+
+    # Only output the license key to stdout (this is what gets captured by the variable assignment)
     echo "$license_key"
 }
 
 # Generate .env file from .env.example
 generate_env_file() {
     log_info "Generating .env file with secure credentials..."
-    
+
     if [ ! -f ".env.example" ]; then
         log_error ".env.example file not found!"
         exit 1
     fi
-    
+
     # Get Aidbox license from user
     log_info "Step 1: Obtaining Aidbox development license..."
     local aidbox_license=$(get_aidbox_license)
-    
+
     log_info "Step 2: Generating secure passwords..."
     # Generate secure passwords
     local postgres_password=$(generate_password)
     local aidbox_admin_password=$(generate_password)
     local aidbox_client_secret=$(generate_password)
     local form_autopopulation_client_secret=$(generate_password)
-    
+
     # Copy .env.example to .env and replace placeholders
     cp .env.example .env
-    
+
     # Replace password placeholders with generated values
     sed -i.bak "s/your_postgres_password_here/$postgres_password/g" .env
     sed -i.bak "s/admin/$aidbox_admin_password/g" .env
     sed -i.bak "s/your_aidbox_client_secret_here/$aidbox_client_secret/g" .env
     sed -i.bak "s/your_form_autopopulation_client_secret_here/$form_autopopulation_client_secret/g" .env
-    sed -i.bak "s/your_aidbox_dev_license_key_here/$aidbox_license/g" .env
+
+    # Handle license key replacement safely (handles multi-line content)
+    # Use a more robust approach with temporary files
+    local temp_env=$(mktemp)
+    local license_file=$(mktemp)
     
+    # Write license to temporary file
+    echo "$aidbox_license" > "$license_file"
+    
+    # Process .env line by line, replacing the placeholder
+    while IFS= read -r line; do
+        if [[ "$line" == *"your_aidbox_dev_license_key_here"* ]]; then
+            # Replace the placeholder with the actual license key
+            echo "AIDBOX_LICENSE_KEY=$aidbox_license"
+        else
+            echo "$line"
+        fi
+    done < .env > "$temp_env"
+    
+    # Replace the original file
+    mv "$temp_env" .env
+    
+    # Clean up temporary files
+    rm -f "$license_file"
+
     # Clean up backup file
     rm -f .env.bak
-    
+
     # Store the generated client secret for later use
     export FORM_AUTOPOPULATION_CLIENT_SECRET="$form_autopopulation_client_secret"
     export AIDBOX_CLIENT_SECRET="$aidbox_client_secret"
     export AIDBOX_ADMIN_PASSWORD="$aidbox_admin_password"
     export AIDBOX_LICENSE_KEY="$aidbox_license"
-    
+
     log_success ".env file generated with secure credentials and Aidbox license"
     log_info "Generated credentials:"
     echo "  - POSTGRES_PASSWORD: $postgres_password"
@@ -176,18 +200,18 @@ generate_env_file() {
 # Generate Aidbox init bundle
 generate_init_bundle() {
     log_info "Step 3: Generating Aidbox init bundle..."
-    
+
     if ! ./scripts/generate-init-bundle.sh; then
         log_error "Failed to generate Aidbox init bundle"
         return 1
     fi
-    
+
     log_success "Aidbox init bundle generated!"
     echo ""
     log_info "The bundle will automatically seed:"
     echo "  ✓ OAuth2 Client: form-auto-population-service"
-    echo "  ✓ Access policies for Questionnaire and QuestionnaireResponse"  
-    echo "  ✓ Kafka subscriptions for Patient and QuestionnaireResponse events"
+    echo "  ✓ Access policies for Questionnaire and QuestionnaireResponse"
+    echo "  ✓ Kafka subscriptions for auto-population events"
 }
 
 # Main execution
@@ -197,13 +221,13 @@ main() {
     echo "=========================================="
     echo "This script will set up your complete FHIR-based form auto-population environment."
     echo ""
-    
+
     # Check dependencies
     check_dependencies
-    
+
     # Generate environment file (includes license acquisition)
     generate_env_file
-    
+
     echo ""
     log_info "🚀 Complete setup options:"
     echo ""
@@ -213,11 +237,11 @@ main() {
     echo "Option 2: Manual step-by-step setup"
     echo "   You'll run infrastructure and seeding commands manually"
     echo ""
-    
+
     while true; do
         echo -n "Choose setup option (1 for automated, 2 for manual): "
         read -r choice
-        
+
         case $choice in
             1)
                 log_info "Starting automated setup..."
@@ -238,10 +262,10 @@ main() {
 # Automated setup option
 automated_setup() {
     echo ""
-    
+
     # Generate init bundle first
     generate_init_bundle
-    
+
     echo ""
     log_info "🔄 Starting Docker infrastructure with automatic FHIR seeding..."
     if ! docker compose up -d; then
@@ -251,7 +275,16 @@ automated_setup() {
         manual_setup_instructions
         return 1
     fi
-    
+
+    echo ""
+    log_info "⚡ Setting up Kafka subscriptions for auto-population events..."
+    if ! ./scripts/setup-kafka-subscriptions.sh; then
+        log_warning "Failed to set up Kafka subscriptions automatically"
+        log_info "You can run this manually later: ./scripts/setup-kafka-subscriptions.sh"
+    else
+        log_success "Kafka subscriptions configured successfully!"
+    fi
+
     echo ""
     log_success "🎉 Complete setup finished!"
     echo ""
@@ -274,10 +307,10 @@ automated_setup() {
 # Manual setup instructions
 manual_setup_instructions() {
     echo ""
-    
+
     # Generate init bundle for manual setup too
     generate_init_bundle
-    
+
     echo ""
     log_success "Environment setup complete!"
     echo ""
@@ -285,7 +318,8 @@ manual_setup_instructions() {
     log_info ""
     log_info "Next steps:"
     log_info "1. Start infrastructure: docker compose up -d"
-    log_info "2. Start service: npx nx serve form-auto-population-service"
+    log_info "2. Set up Kafka subscriptions: ./scripts/setup-kafka-subscriptions.sh"
+    log_info "3. Start service: npx nx serve form-auto-population-service"
     echo ""
     log_info "📊 Access URLs (after starting services):"
     echo "   • Aidbox FHIR Server: http://localhost:8081"
