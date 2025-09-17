@@ -277,15 +277,6 @@ automated_setup() {
     fi
 
     echo ""
-    log_info "⚡ Setting up Kafka subscriptions for auto-population events..."
-    if ! ./scripts/setup-kafka-subscriptions.sh; then
-        log_warning "Failed to set up Kafka subscriptions automatically"
-        log_info "You can run this manually later: ./scripts/setup-kafka-subscriptions.sh"
-    else
-        log_success "Kafka subscriptions configured successfully!"
-    fi
-
-    echo ""
     log_success "🎉 Complete setup finished!"
     echo ""
     log_info "Your FHIR healthcare application is now fully configured and running!"
@@ -318,8 +309,7 @@ manual_setup_instructions() {
     log_info ""
     log_info "Next steps:"
     log_info "1. Start infrastructure: docker compose up -d"
-    log_info "2. Set up Kafka subscriptions: ./scripts/setup-kafka-subscriptions.sh"
-    log_info "3. Start service: npx nx serve form-auto-population-service"
+    log_info "2. Start service: npx nx serve form-auto-population-service"
     echo ""
     log_info "📊 Access URLs (after starting services):"
     echo "   • Aidbox FHIR Server: http://localhost:8081"

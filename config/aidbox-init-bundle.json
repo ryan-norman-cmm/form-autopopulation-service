@@ -83,6 +83,51 @@
           }
         ]
       }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "AidboxSubscriptionTopic"
+      },
+      "resource": {
+        "resourceType": "AidboxSubscriptionTopic",
+        "id": "questionnaire-response-topic",
+        "url": "http://example.org/FHIR/R5/SubscriptionTopic/QuestionnaireResponse-topic",
+        "status": "active",
+        "trigger": [
+          {
+            "resource": "QuestionnaireResponse",
+            "fhirPathCriteria": "status = 'completed' or status = 'amended'"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "AidboxTopicDestination"
+      },
+      "resource": {
+        "resourceType": "AidboxTopicDestination",
+        "meta": {
+          "profile": [
+            "http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-best-effort"
+          ]
+        },
+        "kind": "kafka-best-effort",
+        "id": "kafka-destination",
+        "topic": "http://example.org/FHIR/R5/SubscriptionTopic/QuestionnaireResponse-topic",
+        "parameter": [
+          {
+            "name": "kafkaTopic",
+            "valueString": "{{FORM_POPULATION_COMPLETED_TOPIC}}"
+          },
+          {
+            "name": "bootstrapServers",
+            "valueString": "{{KAFKA_INTERNAL_HOST}}:{{KAFKA_INTERNAL_PORT}}"
+          }
+        ]
+      }
     }
   ]
 }
