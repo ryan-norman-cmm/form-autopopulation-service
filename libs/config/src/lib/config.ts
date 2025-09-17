@@ -19,20 +19,18 @@ export function configFactory(): Config {
         'http://localhost:3000,http://localhost:4200',
     },
     kafka: {
-      bootstrapServers: process.env.KAFKA_BOOTSTRAP_SERVERS || 'localhost:9094',
-      clientId: process.env.KAFKA_CLIENT_ID || 'form-population-service',
+      bootstrapServers: process.env.KAFKA_BOOTSTRAP_SERVERS,
+      clientId: process.env.KAFKA_CLIENT_ID,
       connectionTimeout: process.env.KAFKA_CONNECTION_TIMEOUT
         ? parseInt(process.env.KAFKA_CONNECTION_TIMEOUT, 10)
         : 30000,
       requestTimeout: process.env.KAFKA_REQUEST_TIMEOUT
         ? parseInt(process.env.KAFKA_REQUEST_TIMEOUT, 10)
         : 30000,
-      formPopulationCompletedTopic:
-        process.env.FORM_POPULATION_COMPLETED_TOPIC ||
-        'form.population.completed',
+      formPopulationCompletedTopic: process.env.FORM_POPULATION_COMPLETED_TOPIC,
     },
     fhirServer: {
-      url: process.env.AIDBOX_URL || 'http://localhost:8081',
+      url: process.env.AIDBOX_URL,
       clientId: process.env.FORM_AUTOPOPULATION_CLIENT_ID,
       clientSecret: process.env.FORM_AUTOPOPULATION_CLIENT_SECRET,
     },
@@ -47,10 +45,33 @@ export function configFactory(): Config {
   });
 
   if (errors.length > 0) {
+    const formatErrors = (errors: any[], prefix = ''): string[] => {
+      const messages: string[] = [];
+
+      for (const error of errors) {
+        const propertyPath = prefix
+          ? `${prefix}.${error.property}`
+          : error.property;
+
+        // Handle direct constraints
+        if (error.constraints) {
+          const constraintMessages = Object.values(error.constraints);
+          messages.push(`${propertyPath}: ${constraintMessages.join(', ')}`);
+        }
+
+        // Handle nested validation errors
+        if (error.children && error.children.length > 0) {
+          messages.push(...formatErrors(error.children, propertyPath));
+        }
+      }
+
+      return messages;
+    };
+
+    const errorMessages = formatErrors(errors).join('\n  ');
+
     throw new Error(
-      `Configuration validation error: ${errors
-        .map((error) => Object.values(error.constraints || {}).join(', '))
-        .join('; ')}`
+      `Configuration validation failed. Please check the following environment variables:\n  ${errorMessages}`
     );
   }
 
