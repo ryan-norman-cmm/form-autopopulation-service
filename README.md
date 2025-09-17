@@ -25,17 +25,70 @@ A NestJS microservice for automated form population using FHIR patient data, bui
 │              Form Auto-Population Service                       │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
 │  │ REST Controller │  │ Kafka Consumer  │  │ FHIR Client     │ │
-│  │ - Form Templates│  │ - Population    │  │ - Patient Data  │ │
-│  │ - Validation    │  │ - Validation    │  │ - Resource CRUD │ │
-│  │ - Population    │  │ - Events        │  │ - Subscriptions │ │
+│  │ - Test Endpoint │  │ - Population    │  │ - Aidbox SDK R4 │ │
+│  │ - Health Check  │  │ - Validation    │  │ - Basic Auth    │ │
+│  │                 │  │ - Events        │  │ - Resource CRUD │ │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │              FHIR Questionnaire Converter                   │ │
+│  │  - AI Output → FHIR QuestionnaireResponse                   │ │
+│  │  - Answer Type Detection & Formatting                       │ │
+│  │  - FHIR R4 Compliance & Validation                          │ │
+│  └─────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
           │                      │                      │
           ▼                      ▼                      ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│    Database     │    │     Kafka       │    │    Aidbox       │
-│   (Forms Data)  │    │ (Event Stream)  │    │ (FHIR Server)   │
+│   PostgreSQL    │    │     Kafka       │    │    Aidbox       │
+│ (Aidbox Data)   │    │ (Event Stream)  │    │ (FHIR Server)   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### Core Libraries
+
+- **FHIR Client** (`libs/fhir-client`) - Aidbox SDK R4 integration with Basic Authentication
+- **FHIR Questionnaire Converter** (`libs/fhir-questionnaire-converter`) - Translation layer for AI output to FHIR formats
+
+## Modifying Translation/Conversion Logic
+
+To customize how AI output is converted to FHIR resources, modify these key files:
+
+### 📍 **Primary Conversion Logic**
+
+- **`libs/fhir-questionnaire-converter/src/lib/fhir-questionnaire-converter.ts`**
+  - Main function: `convertToQuestionnaireResponse()`
+  - Converts AI questionnaire output to FHIR QuestionnaireResponse format
+  - Maps question IDs, text, and structures FHIR metadata
+
+### 📍 **Answer Type Formatting**
+
+- **`libs/fhir-questionnaire-converter/src/lib/answer-formatter.ts`**
+  - Main function: `formatAnswer()`
+  - Handles type detection and FHIR value formatting:
+    - `valueString` - Text answers
+    - `valueInteger`/`valueDecimal` - Numeric answers
+    - `valueBoolean` - Yes/No answers
+    - `valueCoding` - Coded values (e.g., gender)
+  - Add custom type detection logic here
+
+### 📍 **Type Definitions**
+
+- **`libs/fhir-questionnaire-converter/src/lib/types.ts`**
+  - TypeScript interfaces for input/output formats
+  - Modify to support new data structures
+
+### 🔧 **Testing Your Changes**
+
+```bash
+# Test the converter library
+npx nx test fhir-questionnaire-converter
+
+# Test the full service integration
+npx nx test form-auto-population-service
+
+# Build and verify
+npx nx build fhir-questionnaire-converter
 ```
 
 ## Quick Start
@@ -686,9 +739,7 @@ For additional support with manual configuration, refer to the [Aidbox documenta
 
 - **Service**: http://localhost:3000/api
 - **Health**: http://localhost:3000/health
-- **Form Population**: POST http://localhost:3000/api/forms/populate
-- **Form Validation**: POST http://localhost:3000/api/forms/validate
-- **Form Templates**: GET http://localhost:3000/api/forms/:formId/template
+- **Test Questionnaire Creation**: POST http://localhost:3000/api/forms/test/create-questionnaire
 
 ### Infrastructure Services
 
@@ -723,31 +774,19 @@ docker compose logs -f                      # View all logs
 
 ### API Usage Examples
 
-#### Form Population Request
+#### Test Questionnaire Creation
 
 ```bash
-curl -X POST http://localhost:3000/api/forms/populate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "formId": "patient-intake",
-    "patientId": "patient-123",
-    "formData": {}
-  }'
+curl -X POST http://localhost:3000/api/forms/test/create-questionnaire \
+  -H "Content-Type: application/json"
 ```
 
-#### Form Validation Request
+This endpoint creates a test FHIR Questionnaire resource in Aidbox and returns the created resource with metadata.
+
+#### Health Check
 
 ```bash
-curl -X POST http://localhost:3000/api/forms/validate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "formId": "patient-intake",
-    "patientId": "patient-123",
-    "formData": {
-      "patientName": "John Doe",
-      "dateOfBirth": "1990-01-01"
-    }
-  }'
+curl http://localhost:3000/health
 ```
 
 ## Kafka Event Processing
