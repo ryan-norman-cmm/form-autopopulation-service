@@ -7,7 +7,6 @@ export class HealthController {
   @Get()
   async getHealth() {
     let kafkaStatus = 'unknown';
-    let databaseStatus = 'unknown';
     let externalApiStatus = 'unknown';
 
     // Check Kafka connection if configured
@@ -38,26 +37,10 @@ export class HealthController {
       kafkaStatus = 'not-configured';
     }
 
-    // Check database connection if configured
-    if (
-      process.env.DATABASE_URL ||
-      (process.env.DB_HOST && process.env.DB_PORT)
-    ) {
-      try {
-        // In a real implementation, you would check your actual database connection
-        // For now, we'll just mark it as configured
-        databaseStatus = 'configured';
-      } catch {
-        databaseStatus = 'disconnected';
-      }
-    } else {
-      databaseStatus = 'not-configured';
-    }
-
     // Check external APIs (FHIR server) - REQUIRED
-    if (process.env.FHIR_SERVER_URL || process.env.AIDBOX_URL) {
+    if (process.env.AIDBOX_URL) {
       try {
-        const fhirUrl = process.env.FHIR_SERVER_URL || process.env.AIDBOX_URL;
+        const fhirUrl = process.env.AIDBOX_URL;
         const healthEndpoint = `${fhirUrl}/health`;
 
         const response = await axios.get(healthEndpoint, {
@@ -77,10 +60,7 @@ export class HealthController {
 
     // Service is only healthy if all required services are working
     const allHealthy =
-      kafkaStatus === 'connected' &&
-      (databaseStatus === 'configured' ||
-        databaseStatus === 'not-configured') &&
-      externalApiStatus === 'connected';
+      kafkaStatus === 'connected' && externalApiStatus === 'connected';
 
     return {
       status: allHealthy ? 'ok' : 'unhealthy',
@@ -89,12 +69,10 @@ export class HealthController {
       version: '1.0.0',
       checks: {
         kafka: kafkaStatus,
-        database: databaseStatus,
         externalApi: externalApiStatus,
       },
       uptime: process.uptime(),
       required: ['kafka', 'externalApi'],
-      optional: ['database'],
     };
   }
 }
