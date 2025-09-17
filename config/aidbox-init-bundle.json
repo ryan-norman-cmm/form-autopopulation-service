@@ -30,9 +30,11 @@
         "resourceType": "AccessPolicy",
         "id": "questionnaire-access-policy",
         "description": "Allow form-auto-population-service to access Questionnaire resources",
-        "engine": "sql",
-        "sql": {
-          "query": "SELECT true WHERE request.params.resource/type = 'Questionnaire'"
+        "engine": "matcho",
+        "matcho": {
+          "params": {
+            "resource/type": "Questionnaire"
+          }
         },
         "link": [
           {
@@ -51,9 +53,11 @@
         "resourceType": "AccessPolicy",
         "id": "questionnaireresponse-access-policy",
         "description": "Allow form-auto-population-service to access QuestionnaireResponse resources",
-        "engine": "sql",
-        "sql": {
-          "query": "SELECT true WHERE request.params.resource/type = 'QuestionnaireResponse'"
+        "engine": "matcho",
+        "matcho": {
+          "params": {
+            "resource/type": "QuestionnaireResponse"
+          }
         },
         "link": [
           {
