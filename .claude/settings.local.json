@@ -58,7 +58,11 @@
       "WebSearch",
       "WebFetch(domain:docs.aidbox.app)",
       "WebFetch(domain:www.health-samurai.io)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(./scripts/init.sh:*)",
+      "Bash(./scripts/generate-init-bundle.sh:*)",
+      "Read(//tmp/**)",
+      "Bash(docker logs:*)"
     ],
     "deny": [],
     "ask": []

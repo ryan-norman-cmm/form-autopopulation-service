@@ -28,16 +28,17 @@
       "resource": {
         "resourceType": "AccessPolicy",
         "id": "questionnaire-access-policy",
-        "uri": "urn:policy:questionnaire-access",
         "description": "Allow form-auto-population-service to access Questionnaire resources",
-        "type": "sql",
+        "engine": "sql",
         "sql": {
-          "query": "SELECT true WHERE $client.id = 'form-auto-population-service'"
+          "query": "SELECT true WHERE request.params.resource/type = 'Questionnaire'"
         },
-        "resource": {
-          "type": "Questionnaire"
-        },
-        "action": ["read", "create", "update", "delete"]
+        "link": [
+          {
+            "resourceType": "Client",
+            "id": "form-auto-population-service"
+          }
+        ]
       }
     },
     {
@@ -48,76 +49,17 @@
       "resource": {
         "resourceType": "AccessPolicy",
         "id": "questionnaireresponse-access-policy",
-        "uri": "urn:policy:questionnaireresponse-access",
         "description": "Allow form-auto-population-service to access QuestionnaireResponse resources",
-        "type": "sql",
+        "engine": "sql",
         "sql": {
-          "query": "SELECT true WHERE $client.id = 'form-auto-population-service'"
+          "query": "SELECT true WHERE request.params.resource/type = 'QuestionnaireResponse'"
         },
-        "resource": {
-          "type": "QuestionnaireResponse"
-        },
-        "action": ["read", "create", "update", "delete"]
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AidboxSubscription/patient-updates-kafka"
-      },
-      "resource": {
-        "resourceType": "AidboxSubscription",
-        "id": "patient-updates-kafka",
-        "status": "active",
-        "trigger": {
-          "Patient": {
-            "event": ["create", "update"]
+        "link": [
+          {
+            "resourceType": "Client",
+            "id": "form-auto-population-service"
           }
-        },
-        "channel": {
-          "type": "aidbox-kafka",
-          "endpoint": "kafka:9092",
-          "payload": "application/fhir+json",
-          "headers": {
-            "Content-Type": "application/fhir+json"
-          },
-          "config": {
-            "topic": "form.population.requested",
-            "bootstrap.servers": "kafka:9092",
-            "acks": "all",
-            "retries": "3"
-          }
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AidboxSubscription/questionnaireresponse-updates-kafka"
-      },
-      "resource": {
-        "resourceType": "AidboxSubscription",
-        "id": "questionnaireresponse-updates-kafka",
-        "status": "active",
-        "trigger": {
-          "QuestionnaireResponse": {
-            "event": ["create", "update"]
-          }
-        },
-        "channel": {
-          "type": "aidbox-kafka",
-          "endpoint": "kafka:9092",
-          "payload": "application/fhir+json",
-          "headers": {
-            "Content-Type": "application/fhir+json"
-          },
-          "config": {
-            "topic": "form.population.completed",
-            "bootstrap.servers": "kafka:9092",
-            "acks": "all",
-            "retries": "3"
-          }
-        }
+        ]
       }
     }
   ]
