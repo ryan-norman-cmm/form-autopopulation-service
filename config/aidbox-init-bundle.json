@@ -1,0 +1,124 @@
+{
+  "resourceType": "Bundle",
+  "id": "form-auto-population-init-bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "Client/form-auto-population-service"
+      },
+      "resource": {
+        "resourceType": "Client",
+        "id": "form-auto-population-service",
+        "secret": "{{FORM_AUTOPOPULATION_CLIENT_SECRET}}",
+        "grant_types": ["client_credentials"],
+        "scope": [
+          "system/Patient.read",
+          "system/Questionnaire.*",
+          "system/QuestionnaireResponse.*"
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "AccessPolicy/questionnaire-access-policy"
+      },
+      "resource": {
+        "resourceType": "AccessPolicy",
+        "id": "questionnaire-access-policy",
+        "uri": "urn:policy:questionnaire-access",
+        "description": "Allow form-auto-population-service to access Questionnaire resources",
+        "type": "sql",
+        "sql": {
+          "query": "SELECT true WHERE $client.id = 'form-auto-population-service'"
+        },
+        "resource": {
+          "type": "Questionnaire"
+        },
+        "action": ["read", "create", "update", "delete"]
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "AccessPolicy/questionnaireresponse-access-policy"
+      },
+      "resource": {
+        "resourceType": "AccessPolicy",
+        "id": "questionnaireresponse-access-policy",
+        "uri": "urn:policy:questionnaireresponse-access",
+        "description": "Allow form-auto-population-service to access QuestionnaireResponse resources",
+        "type": "sql",
+        "sql": {
+          "query": "SELECT true WHERE $client.id = 'form-auto-population-service'"
+        },
+        "resource": {
+          "type": "QuestionnaireResponse"
+        },
+        "action": ["read", "create", "update", "delete"]
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "AidboxSubscription/patient-updates-kafka"
+      },
+      "resource": {
+        "resourceType": "AidboxSubscription",
+        "id": "patient-updates-kafka",
+        "status": "active",
+        "trigger": {
+          "Patient": {
+            "event": ["create", "update"]
+          }
+        },
+        "channel": {
+          "type": "aidbox-kafka",
+          "endpoint": "kafka:9092",
+          "payload": "application/fhir+json",
+          "headers": {
+            "Content-Type": "application/fhir+json"
+          },
+          "config": {
+            "topic": "form.population.requested",
+            "bootstrap.servers": "kafka:9092",
+            "acks": "all",
+            "retries": "3"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "AidboxSubscription/questionnaireresponse-updates-kafka"
+      },
+      "resource": {
+        "resourceType": "AidboxSubscription",
+        "id": "questionnaireresponse-updates-kafka",
+        "status": "active",
+        "trigger": {
+          "QuestionnaireResponse": {
+            "event": ["create", "update"]
+          }
+        },
+        "channel": {
+          "type": "aidbox-kafka",
+          "endpoint": "kafka:9092",
+          "payload": "application/fhir+json",
+          "headers": {
+            "Content-Type": "application/fhir+json"
+          },
+          "config": {
+            "topic": "form.population.completed",
+            "bootstrap.servers": "kafka:9092",
+            "acks": "all",
+            "retries": "3"
+          }
+        }
+      }
+    }
+  ]
+}

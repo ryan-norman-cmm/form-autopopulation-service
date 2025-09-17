@@ -69,6 +69,8 @@ services:
         condition: service_healthy
     ports:
       - '8081:8080'
+    volumes:
+      - /tmp/aidbox-init-bundle.json:/tmp/aidbox-init-bundle.json:ro
     environment:
       BOX_ADMIN_PASSWORD: ${AIDBOX_ADMIN_PASSWORD}
       BOX_BOOTSTRAP_FHIR_PACKAGES: hl7.fhir.r4.core#4.0.1
@@ -97,6 +99,8 @@ services:
       # Kafka Subscription Configuration
       BOX_SUBSCRIPTION_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       BOX_SUBSCRIPTION_KAFKA_ENABLED: true
+      # FHIR Resources Initialization
+      BOX_INIT_BUNDLE: 'file:///tmp/aidbox-init-bundle.json'
     networks:
       form-network:
         ipv4_address: 172.25.0.30

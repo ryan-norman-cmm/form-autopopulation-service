@@ -2,6 +2,8 @@
 
 A NestJS microservice for automated form population using FHIR patient data, built with Kafka event-driven architecture and Aidbox FHIR server integration.
 
+> **🚀 New: One-Script Setup!** Run `./scripts/init.sh` and choose automated setup for instant FHIR application deployment with license acquisition, infrastructure startup, and **native Aidbox resource seeding** - all in one command!
+
 ## Features
 
 - 🏥 **FHIR Integration** - Patient data from Aidbox FHIR server
@@ -47,7 +49,7 @@ A NestJS microservice for automated form population using FHIR patient data, bui
 ### 2. One-Command Setup
 
 ```bash
-# Complete setup with automatic license acquisition
+# Complete automated setup (everything in one script!)
 ./scripts/init.sh
 ```
 
@@ -58,8 +60,12 @@ This interactive script will:
 - 🔑 Guide you through free license acquisition
 - 🔐 Generate secure passwords and secrets
 - 📝 Create complete `.env` configuration
+- 🚀 **Option 1**: Full automated setup (starts infrastructure with native FHIR seeding)
+- 📋 **Option 2**: Manual step-by-step (gives you control over each step)
 
-No manual configuration needed!
+**Recommended**: Choose automated setup for instant FHIR application!
+
+> **🎯 New: Native Aidbox Seeding!** Uses Aidbox's `BOX_INIT_BUNDLE` for native resource initialization - no external scripts needed!
 
 ## Security Configuration
 
@@ -114,14 +120,9 @@ docker compose up -d
 docker compose ps
 ```
 
-### 4. Seed FHIR Resources
+### 4. Install Dependencies & Start Service
 
-```bash
-# Create OAuth2 clients, access policies, and Kafka subscriptions
-./scripts/seed-fhir-resources.sh
-```
-
-### 5. Install Dependencies & Start Service
+> **✨ FHIR Resources Auto-Seeded!** OAuth2 clients, access policies, and Kafka subscriptions are automatically created when Aidbox starts using the native `BOX_INIT_BUNDLE` configuration.
 
 ```bash
 # Install dependencies

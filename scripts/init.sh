@@ -172,26 +172,22 @@ generate_env_file() {
     echo "  - AIDBOX_LICENSE_KEY: ${aidbox_license:0:20}... (truncated for security)"
 }
 
-# Wait for Aidbox to be ready
-wait_for_aidbox() {
-    log_info "Waiting for Aidbox FHIR server to be ready..."
+
+# Generate Aidbox init bundle
+generate_init_bundle() {
+    log_info "Step 3: Generating Aidbox init bundle..."
     
-    local max_attempts=60
-    local attempt=1
+    if ! ./scripts/generate-init-bundle.sh; then
+        log_error "Failed to generate Aidbox init bundle"
+        return 1
+    fi
     
-    while [ $attempt -le $max_attempts ]; do
-        if curl -s -f http://localhost:8081/health > /dev/null 2>&1; then
-            log_success "Aidbox is ready!"
-            return 0
-        fi
-        
-        echo -n "."
-        sleep 5
-        ((attempt++))
-    done
-    
-    log_error "Aidbox failed to start after $((max_attempts * 5)) seconds"
-    return 1
+    log_success "Aidbox init bundle generated!"
+    echo ""
+    log_info "The bundle will automatically seed:"
+    echo "  ✓ OAuth2 Client: form-auto-population-service"
+    echo "  ✓ Access policies for Questionnaire and QuestionnaireResponse"  
+    echo "  ✓ Kafka subscriptions for Patient and QuestionnaireResponse events"
 }
 
 # Main execution
@@ -209,23 +205,96 @@ main() {
     generate_env_file
     
     echo ""
+    log_info "🚀 Complete setup options:"
+    echo ""
+    echo "Option 1: Full automated setup (recommended)"
+    echo "   This will start infrastructure and seed all FHIR resources automatically"
+    echo ""
+    echo "Option 2: Manual step-by-step setup"
+    echo "   You'll run infrastructure and seeding commands manually"
+    echo ""
+    
+    while true; do
+        echo -n "Choose setup option (1 for automated, 2 for manual): "
+        read -r choice
+        
+        case $choice in
+            1)
+                log_info "Starting automated setup..."
+                automated_setup
+                break
+                ;;
+            2)
+                manual_setup_instructions
+                break
+                ;;
+            *)
+                log_error "Please enter 1 or 2"
+                ;;
+        esac
+    done
+}
+
+# Automated setup option
+automated_setup() {
+    echo ""
+    
+    # Generate init bundle first
+    generate_init_bundle
+    
+    echo ""
+    log_info "🔄 Starting Docker infrastructure with automatic FHIR seeding..."
+    if ! docker compose up -d; then
+        log_error "Failed to start Docker infrastructure"
+        echo ""
+        log_info "Please check Docker is running and try manual setup:"
+        manual_setup_instructions
+        return 1
+    fi
+    
+    echo ""
+    log_success "🎉 Complete setup finished!"
+    echo ""
+    log_info "Your FHIR healthcare application is now fully configured and running!"
+    echo ""
+    log_info "📊 Access URLs:"
+    echo "   • Aidbox FHIR Server: http://localhost:8081"
+    echo "   • Kafka UI (Kafdrop): http://localhost:19001"
+    echo ""
+    log_info "🚀 Start your service:"
+    echo "   npx nx serve form-auto-population-service"
+    echo ""
+    log_info "   Your service will be available at: http://localhost:3000"
+    echo ""
+    log_info "💡 All FHIR resources were automatically seeded using Aidbox's native init bundle!"
+    echo ""
+    log_warning "🔒 Keep your .env file secure - it contains generated passwords and license key!"
+}
+
+# Manual setup instructions
+manual_setup_instructions() {
+    echo ""
+    
+    # Generate init bundle for manual setup too
+    generate_init_bundle
+    
+    echo ""
     log_success "Environment setup complete!"
     echo ""
     log_info "🚀 Ready to start your FHIR healthcare application!"
     log_info ""
     log_info "Next steps:"
     log_info "1. Start infrastructure: docker compose up -d"
-    log_info "2. Seed FHIR resources: ./scripts/seed-fhir-resources.sh"
-    log_info "3. Start service: npx nx serve form-auto-population-service"
+    log_info "2. Start service: npx nx serve form-auto-population-service"
     echo ""
     log_info "📊 Access URLs (after starting services):"
     echo "   • Aidbox FHIR Server: http://localhost:8081"
     echo "   • Kafka UI (Kafdrop): http://localhost:19001"
     echo "   • Form Auto-Population Service: http://localhost:3000"
     echo ""
-    log_warning "🔒 Keep your .env file secure - it contains generated passwords and license key!"
+    log_info "💡 FHIR resources will be automatically seeded when Aidbox starts!"
     echo ""
-    log_info "💡 Tip: You can run all remaining steps with: docker compose up -d && ./scripts/seed-fhir-resources.sh"
+    log_warning "🔒 Keep your .env file secure - it contains generated passwords and license key!"
 }
 
 # Run main function
