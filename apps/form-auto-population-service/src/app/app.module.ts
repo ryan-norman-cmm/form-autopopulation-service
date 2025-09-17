@@ -1,57 +1,51 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { FhirService } from '@form-auto-population/fhir-client';
+import {
+  AppConfigModule,
+  AppConfigService,
+} from '@form-auto-population/config';
 import { AppController } from './app.controller';
 import { FormPopulationController } from './form-population.controller';
 import { FormPopulationService } from './form-population.service';
 import { HealthController } from './health.controller';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
-    }),
-  ],
+  imports: [AppConfigModule],
   controllers: [AppController, FormPopulationController, HealthController],
   providers: [
     FormPopulationService,
     {
       provide: 'FHIR_SERVICE',
-      useFactory: (configService: ConfigService) => {
-        const baseUrl = configService.get('AIDBOX_URL');
-        const clientId = configService.get('FORM_AUTOPOPULATION_CLIENT_ID');
-        const clientSecret = configService.get(
-          'FORM_AUTOPOPULATION_CLIENT_SECRET'
-        );
+      useFactory: (configService: AppConfigService) => {
+        const fhirServerConfig = configService.fhirServer;
 
-        if (!baseUrl) {
+        if (!fhirServerConfig.url) {
           throw new Error(
-            'FHIR server configuration is required. Set AIDBOX_URL or FHIR_SERVER_URL environment variable.'
+            'FHIR server configuration is required. Set AIDBOX_URL environment variable.'
           );
         }
 
-        if (!clientId) {
+        if (!fhirServerConfig.clientId) {
           throw new Error(
-            'FHIR client ID is required. Set FORM_AUTOPOPULATION_CLIENT_ID, AIDBOX_CLIENT_ID, or FHIR_CLIENT_ID environment variable.'
+            'FHIR client ID is required. Set FORM_AUTOPOPULATION_CLIENT_ID environment variable.'
           );
         }
 
-        if (!clientSecret) {
+        if (!fhirServerConfig.clientSecret) {
           throw new Error(
-            'FHIR client secret is required. Set FORM_AUTOPOPULATION_CLIENT_SECRET, AIDBOX_CLIENT_SECRET, or FHIR_CLIENT_SECRET environment variable.'
+            'FHIR client secret is required. Set FORM_AUTOPOPULATION_CLIENT_SECRET environment variable.'
           );
         }
 
         const fhirConfig = {
-          baseUrl,
-          clientId,
-          clientSecret,
+          baseUrl: fhirServerConfig.url,
+          clientId: fhirServerConfig.clientId,
+          clientSecret: fhirServerConfig.clientSecret,
         };
 
         return new FhirService(fhirConfig);
       },
-      inject: [ConfigService],
+      inject: [AppConfigService],
     },
   ],
 })

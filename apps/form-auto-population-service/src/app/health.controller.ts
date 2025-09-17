@@ -1,20 +1,23 @@
 import { Controller, Get } from '@nestjs/common';
 import { Kafka } from 'kafkajs';
 import axios from 'axios';
+import { AppConfigService } from '@form-auto-population/config';
 
 @Controller({ path: 'health' })
 export class HealthController {
+  constructor(private configService: AppConfigService) {}
+
   @Get()
   async getHealth() {
     let kafkaStatus = 'unknown';
     let externalApiStatus = 'unknown';
 
     // Check Kafka connection if configured
-    if (process.env.KAFKA_BOOTSTRAP_SERVERS) {
+    if (this.configService.kafkaBootstrapServers) {
       try {
         const kafka = new Kafka({
           clientId: 'form-population-health-check',
-          brokers: process.env.KAFKA_BOOTSTRAP_SERVERS.split(','),
+          brokers: this.configService.kafkaBootstrapServers.split(','),
         });
 
         const admin = kafka.admin();
@@ -22,10 +25,8 @@ export class HealthController {
 
         // Check if form population topics exist
         const topics = await admin.listTopics();
-        const hasFormTopics = topics.some(
-          (topic) =>
-            topic.includes('form.population') ||
-            topic.includes('form.validation')
+        const hasFormTopics = topics.some((topic) =>
+          topic.includes('form.population')
         );
 
         await admin.disconnect();
@@ -38,9 +39,9 @@ export class HealthController {
     }
 
     // Check external APIs (FHIR server) - REQUIRED
-    if (process.env.AIDBOX_URL) {
+    if (this.configService.fhirServerUrl) {
       try {
-        const fhirUrl = process.env.AIDBOX_URL;
+        const fhirUrl = this.configService.fhirServerUrl;
         const healthEndpoint = `${fhirUrl}/health`;
 
         const response = await axios.get(healthEndpoint, {
