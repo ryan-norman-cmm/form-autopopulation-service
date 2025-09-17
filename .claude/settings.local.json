@@ -62,7 +62,13 @@
       "Bash(./scripts/init.sh:*)",
       "Bash(./scripts/generate-init-bundle.sh:*)",
       "Read(//tmp/**)",
-      "Bash(docker logs:*)"
+      "Bash(docker logs:*)",
+      "Bash(__NEW_LINE__ echo \"🔍 Checking Aidbox logs...\")",
+      "Bash(./scripts/setup-kafka-subscriptions.sh:*)",
+      "Bash(git rm:*)",
+      "Bash(cat:*)",
+      "Bash(pkill:*)",
+      "Bash(AIDBOX_URL=http://localhost:8081 FORM_AUTOPOPULATION_CLIENT_ID=form-auto-population-service FORM_AUTOPOPULATION_CLIENT_SECRET=Z4AnRnE9YnIH8CYfJRJm1mXDNlXl8MZ3 npx nx serve form-auto-population-service)"
     ],
     "deny": [],
     "ask": []

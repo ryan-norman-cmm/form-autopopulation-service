@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { FhirService } from '@form-auto-population/fhir-client';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { FormPopulationController } from './form-population.controller';
 import { FormPopulationService } from './form-population.service';
 import { HealthController } from './health.controller';
@@ -16,22 +15,15 @@ import { HealthController } from './health.controller';
   ],
   controllers: [AppController, FormPopulationController, HealthController],
   providers: [
-    AppService,
     FormPopulationService,
     {
       provide: 'FHIR_SERVICE',
       useFactory: (configService: ConfigService) => {
-        const baseUrl =
-          configService.get('AIDBOX_URL') ||
-          configService.get('FHIR_SERVER_URL');
-        const clientId =
-          configService.get('FORM_AUTOPOPULATION_CLIENT_ID') ||
-          configService.get('AIDBOX_CLIENT_ID') ||
-          configService.get('FHIR_CLIENT_ID');
-        const clientSecret =
-          configService.get('FORM_AUTOPOPULATION_CLIENT_SECRET') ||
-          configService.get('AIDBOX_CLIENT_SECRET') ||
-          configService.get('FHIR_CLIENT_SECRET');
+        const baseUrl = configService.get('AIDBOX_URL');
+        const clientId = configService.get('FORM_AUTOPOPULATION_CLIENT_ID');
+        const clientSecret = configService.get(
+          'FORM_AUTOPOPULATION_CLIENT_SECRET'
+        );
 
         if (!baseUrl) {
           throw new Error(
@@ -55,7 +47,6 @@ import { HealthController } from './health.controller';
           baseUrl,
           clientId,
           clientSecret,
-          useOAuth: true, // Enable OAuth2 client credentials flow
         };
 
         return new FhirService(fhirConfig);
