@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@form-auto-population/config": ["libs/config/src/index.ts"],
       "@form-auto-population/fhir-client": ["libs/fhir-client/src/index.ts"],
       "@form-auto-population/fhir-converters": [
         "libs/fhir-converters/src/index.ts"

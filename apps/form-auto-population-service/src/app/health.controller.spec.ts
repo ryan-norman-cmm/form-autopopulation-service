@@ -1,5 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { HealthController } from './health.controller';
+import { AppConfigService } from '@form-auto-population/config';
 
 // Mock kafkajs
 vi.mock('kafkajs', () => ({
@@ -18,17 +18,25 @@ vi.mock('kafkajs', () => ({
 }));
 
 // Mock axios
-vi.mock('axios');
+vi.mock('axios', () => ({
+  default: {
+    get: vi.fn().mockResolvedValue({ status: 200, headers: {} }),
+  },
+}));
 
 describe('HealthController', () => {
   let controller: HealthController;
+  let mockConfigService: AppConfigService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [HealthController],
-    }).compile();
+  beforeEach(() => {
+    // Create a mock service
+    mockConfigService = {
+      kafkaBootstrapServers: 'localhost:9092',
+      fhirServerUrl: 'http://localhost:8081',
+    } as AppConfigService;
 
-    controller = module.get<HealthController>(HealthController);
+    // Directly instantiate the controller with the mock
+    controller = new HealthController(mockConfigService);
   });
 
   it('should be defined', () => {
@@ -37,13 +45,9 @@ describe('HealthController', () => {
 
   describe('getHealth', () => {
     it('should return unhealthy status when services not configured', async () => {
-      // Clear environment variables for this test
-      delete process.env.KAFKA_BOOTSTRAP_SERVERS;
-      delete process.env.DATABASE_URL;
-      delete process.env.DB_HOST;
-      delete process.env.DB_PORT;
-      delete process.env.FHIR_SERVER_URL;
-      delete process.env.AIDBOX_URL;
+      // Mock config service to return undefined for required services
+      mockConfigService.kafkaBootstrapServers = undefined as unknown as string;
+      mockConfigService.fhirServerUrl = undefined as unknown as string;
 
       const result = await controller.getHealth();
 
@@ -53,45 +57,45 @@ describe('HealthController', () => {
         service: 'form-auto-population-service',
         version: '1.0.0',
         checks: {
-          kafka: 'not-configured',
-          database: 'not-configured',
-          externalApi: 'not-configured',
+          kafka: {
+            status: 'not-configured',
+            brokers: [],
+            required: true,
+          },
+          fhirServer: {
+            status: 'not-configured',
+            error: 'AIDBOX_URL environment variable not configured',
+            required: true,
+          },
         },
         uptime: expect.any(Number),
-        required: ['kafka', 'externalApi'],
-        optional: ['database'],
+        required: ['kafka', 'fhirServer'],
       });
     });
 
     it('should check Kafka connection when configured', async () => {
-      // Set environment variables for this test
-      process.env.KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092';
-      process.env.AIDBOX_URL = 'http://localhost:8081';
-
       const result = await controller.getHealth();
 
-      expect(result.checks.kafka).toBe('connected');
-      // Status will still be unhealthy because FHIR server is mocked as unavailable
-      expect(result.status).toBe('unhealthy');
-
-      // Clean up
-      delete process.env.KAFKA_BOOTSTRAP_SERVERS;
-      delete process.env.AIDBOX_URL;
+      expect(result.checks.kafka.status).toBe('connected');
+      expect(result.checks.kafka.brokers).toEqual(['localhost:9092']);
+      expect(result.checks.kafka.required).toBe(true);
     });
 
-    it('should check database configuration when set', async () => {
-      // Set environment variables for this test
-      process.env.DB_HOST = 'localhost';
-      process.env.DB_PORT = '5432';
-
+    it('should check FHIR server connection when configured', async () => {
       const result = await controller.getHealth();
 
-      expect(result.checks.database).toBe('configured');
-      expect(result.status).toBe('unhealthy'); // Still unhealthy because Kafka and FHIR are not configured
+      expect(result.checks.fhirServer.status).toBe('connected');
+      expect(result.checks.fhirServer.url).toBe('http://localhost:8081');
+      expect(result.checks.fhirServer.required).toBe(true);
+      expect(result.checks.fhirServer.lastChecked).toEqual(expect.any(String));
+    });
 
-      // Clean up
-      delete process.env.DB_HOST;
-      delete process.env.DB_PORT;
+    it('should return healthy status when all required services are connected', async () => {
+      const result = await controller.getHealth();
+
+      expect(result.status).toBe('ok');
+      expect(result.checks.kafka.status).toBe('connected');
+      expect(result.checks.fhirServer.status).toBe('connected');
     });
   });
 });

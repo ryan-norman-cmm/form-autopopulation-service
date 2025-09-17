@@ -1,21 +1,24 @@
 import { Controller, Get } from '@nestjs/common';
 import { Kafka } from 'kafkajs';
 import axios from 'axios';
+import { AppConfigService } from '@form-auto-population/config';
 
 @Controller({ path: 'health' })
 export class HealthController {
+  constructor(private configService: AppConfigService) {}
+
   @Get()
   async getHealth() {
     let kafkaStatus = 'unknown';
-    let databaseStatus = 'unknown';
-    let externalApiStatus = 'unknown';
+    let fhirServerStatus = 'unknown';
+    let fhirServerDetails = {};
 
     // Check Kafka connection if configured
-    if (process.env.KAFKA_BOOTSTRAP_SERVERS) {
+    if (this.configService.kafkaBootstrapServers) {
       try {
         const kafka = new Kafka({
           clientId: 'form-population-health-check',
-          brokers: process.env.KAFKA_BOOTSTRAP_SERVERS.split(','),
+          brokers: this.configService.kafkaBootstrapServers.split(','),
         });
 
         const admin = kafka.admin();
@@ -23,10 +26,8 @@ export class HealthController {
 
         // Check if form population topics exist
         const topics = await admin.listTopics();
-        const hasFormTopics = topics.some(
-          (topic) =>
-            topic.includes('form.population') ||
-            topic.includes('form.validation')
+        const hasFormTopics = topics.some((topic) =>
+          topic.includes('form.population')
         );
 
         await admin.disconnect();
@@ -38,26 +39,10 @@ export class HealthController {
       kafkaStatus = 'not-configured';
     }
 
-    // Check database connection if configured
-    if (
-      process.env.DATABASE_URL ||
-      (process.env.DB_HOST && process.env.DB_PORT)
-    ) {
+    // Check FHIR server - REQUIRED
+    if (this.configService.fhirServerUrl) {
       try {
-        // In a real implementation, you would check your actual database connection
-        // For now, we'll just mark it as configured
-        databaseStatus = 'configured';
-      } catch {
-        databaseStatus = 'disconnected';
-      }
-    } else {
-      databaseStatus = 'not-configured';
-    }
-
-    // Check external APIs (FHIR server) - REQUIRED
-    if (process.env.FHIR_SERVER_URL || process.env.AIDBOX_URL) {
-      try {
-        const fhirUrl = process.env.FHIR_SERVER_URL || process.env.AIDBOX_URL;
+        const fhirUrl = this.configService.fhirServerUrl;
         const healthEndpoint = `${fhirUrl}/health`;
 
         const response = await axios.get(healthEndpoint, {
@@ -66,21 +51,32 @@ export class HealthController {
         });
 
         const isHealthy = response.status === 200;
-        externalApiStatus = isHealthy ? 'connected' : 'unavailable';
-      } catch {
-        externalApiStatus = 'disconnected';
+        fhirServerStatus = isHealthy ? 'connected' : 'unavailable';
+        fhirServerDetails = {
+          url: fhirUrl,
+          responseStatus: response.status,
+          responseTime: response.headers['x-response-time'] || 'unknown',
+          lastChecked: new Date().toISOString(),
+        };
+      } catch (error) {
+        fhirServerStatus = 'disconnected';
+        fhirServerDetails = {
+          url: this.configService.fhirServerUrl,
+          error: error instanceof Error ? error.message : 'Connection failed',
+          lastChecked: new Date().toISOString(),
+        };
       }
     } else {
       // FHIR server is required for this service
-      externalApiStatus = 'not-configured';
+      fhirServerStatus = 'not-configured';
+      fhirServerDetails = {
+        error: 'AIDBOX_URL environment variable not configured',
+      };
     }
 
     // Service is only healthy if all required services are working
     const allHealthy =
-      kafkaStatus === 'connected' &&
-      (databaseStatus === 'configured' ||
-        databaseStatus === 'not-configured') &&
-      externalApiStatus === 'connected';
+      kafkaStatus === 'connected' && fhirServerStatus === 'connected';
 
     return {
       status: allHealthy ? 'ok' : 'unhealthy',
@@ -88,13 +84,19 @@ export class HealthController {
       service: 'form-auto-population-service',
       version: '1.0.0',
       checks: {
-        kafka: kafkaStatus,
-        database: databaseStatus,
-        externalApi: externalApiStatus,
+        kafka: {
+          status: kafkaStatus,
+          brokers: this.configService.kafkaBootstrapServers?.split(',') || [],
+          required: true,
+        },
+        fhirServer: {
+          status: fhirServerStatus,
+          ...fhirServerDetails,
+          required: true,
+        },
       },
       uptime: process.uptime(),
-      required: ['kafka', 'externalApi'],
-      optional: ['database'],
+      required: ['kafka', 'fhirServer'],
     };
   }
 }

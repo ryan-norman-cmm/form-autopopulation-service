@@ -68,7 +68,12 @@
       "Bash(git rm:*)",
       "Bash(cat:*)",
       "Bash(pkill:*)",
-      "Bash(AIDBOX_URL=http://localhost:8081 FORM_AUTOPOPULATION_CLIENT_ID=form-auto-population-service FORM_AUTOPOPULATION_CLIENT_SECRET=Z4AnRnE9YnIH8CYfJRJm1mXDNlXl8MZ3 npx nx serve form-auto-population-service)"
+      "Bash(AIDBOX_URL=http://localhost:8081 FORM_AUTOPOPULATION_CLIENT_ID=form-auto-population-service FORM_AUTOPOPULATION_CLIENT_SECRET=Z4AnRnE9YnIH8CYfJRJm1mXDNlXl8MZ3 npx nx serve form-auto-population-service)",
+      "Bash(kill:*)",
+      "Bash(AIDBOX_URL=http://localhost:8081 FORM_AUTOPOPULATION_CLIENT_ID=form-auto-population-service FORM_AUTOPOPULATION_CLIENT_SECRET=Z4AnRnE9YnIH8CYfJRJm1mXDNlXl8MZ3 KAFKA_BOOTSTRAP_SERVERS=localhost:9094 npx nx serve form-auto-population-service)",
+      "Bash(KAFKA_BOOTSTRAP_SERVERS= npx nx serve form-auto-population-service --skipNxCache)",
+      "Bash(AIDBOX_URL=http://localhost:8081 FORM_AUTOPOPULATION_CLIENT_ID=form-auto-population-service FORM_AUTOPOPULATION_CLIENT_SECRET=Z4AnRnE9YnIH8CYfJRJm1mXDNlXl8MZ3 KAFKA_BOOTSTRAP_SERVERS=localhost:9094 npx nx serve form-auto-population-service --skipNxCache)",
+      "Bash(npm audit:*)"
     ],
     "deny": [],
     "ask": []

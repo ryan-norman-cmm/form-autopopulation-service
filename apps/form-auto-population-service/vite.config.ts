@@ -12,6 +12,10 @@ export default defineConfig({
         __dirname,
         '../../libs/fhir-client/src/index.ts'
       ),
+      '@form-auto-population/config': resolve(
+        __dirname,
+        '../../libs/config/src/index.ts'
+      ),
     },
   },
   test: {
