@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { FhirService } from '@form-auto-population/fhir-client';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { FormPopulationController } from './form-population.controller';
 import { FormPopulationService } from './form-population.service';
 import { HealthController } from './health.controller';
@@ -16,7 +15,6 @@ import { HealthController } from './health.controller';
   ],
   controllers: [AppController, FormPopulationController, HealthController],
   providers: [
-    AppService,
     FormPopulationService,
     {
       provide: 'FHIR_SERVICE',
