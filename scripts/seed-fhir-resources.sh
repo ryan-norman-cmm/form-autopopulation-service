@@ -1,6 +1,11 @@
 #!/bin/bash
-# FHIR Resource Seeding Script
-# Creates OAuth2 clients, access policies, and Kafka subscriptions in Aidbox
+# DEPRECATED: FHIR Resource Seeding Script
+# This script is now deprecated. FHIR resources are automatically seeded using
+# Aidbox's native BOX_INIT_BUNDLE configuration in docker-compose.yml
+# 
+# Use ./scripts/init.sh instead for complete setup with native seeding.
+# 
+# Legacy script: Creates OAuth2 clients, access policies, and Kafka subscriptions in Aidbox
 
 set -e  # Exit on any error
 
