@@ -12,7 +12,7 @@
         "resourceType": "Client",
         "id": "form-auto-population-service",
         "secret": "{{FORM_AUTOPOPULATION_CLIENT_SECRET}}",
-        "grant_types": ["client_credentials"],
+        "grant_types": ["basic"],
         "scope": [
           "system/Patient.read",
           "system/Questionnaire.*",
@@ -81,6 +81,27 @@
             "$enum": ["get"]
           },
           "uri": "#^/fhir/QuestionnaireResponse.*$"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "AccessPolicy/as-client-patient-read"
+      },
+      "resource": {
+        "resourceType": "AccessPolicy",
+        "id": "as-client-patient-read",
+        "description": "Allow form-auto-population-service to read and search Patient resources",
+        "engine": "matcho",
+        "matcho": {
+          "client": {
+            "id": "form-auto-population-service"
+          },
+          "request-method": {
+            "$enum": ["get"]
+          },
+          "uri": "#^/fhir/Patient.*$"
         }
       }
     },
