@@ -84,18 +84,26 @@ get_aidbox_license() {
     log_info "Aidbox FHIR server requires a development license (free, 100-year validity)" >&2
     echo "" >&2
     echo "📋 License acquisition steps:" >&2
-    echo "   1. Sign up at Aidbox portal (opening in browser...)" >&2
+    echo "   1. Sign up at Aidbox portal" >&2
     echo "   2. Verify your email and complete profile setup" >&2
     echo "   3. Navigate to: Licenses → New license → Dev → Self-Hosted → Create" >&2
     echo "   4. Copy the generated license key" >&2
     echo "" >&2
 
-    # Open the Aidbox signup page
-    log_info "Opening Aidbox signup page..." >&2
-    if open_browser "https://aidbox.app/ui/portal#/signup" >&2; then
-        log_success "Browser opened successfully" >&2
+    # Ask if user wants to open browser
+    echo -n "Would you like to open the Aidbox signup page in your browser? [Y/n]: " >&2
+    read -r open_browser_choice
+    
+    # Default to Y if empty
+    if [ -z "$open_browser_choice" ] || [[ "$open_browser_choice" =~ ^[Yy]$ ]]; then
+        log_info "Opening Aidbox signup page..." >&2
+        if open_browser "https://aidbox.app/ui/portal#/signup" >&2; then
+            log_success "Browser opened successfully" >&2
+        else
+            log_warning "Please manually visit: https://aidbox.app/ui/portal#/signup" >&2
+        fi
     else
-        log_warning "Please manually visit: https://aidbox.app/ui/portal#/signup" >&2
+        log_info "Please manually visit: https://aidbox.app/ui/portal#/signup" >&2
     fi
 
     echo "" >&2
@@ -231,7 +239,9 @@ main() {
     echo ""
     log_info "🚀 Complete setup options:"
     echo ""
-    echo "Option 1: Full automated setup (recommended)"
+    log_info "💡 Tip: Press Enter to accept defaults (Y for browser, 1 for automated setup)"
+    echo ""
+    echo "Option 1: Full automated setup (recommended) [default]"
     echo "   This will start infrastructure and seed all FHIR resources automatically"
     echo ""
     echo "Option 2: Manual step-by-step setup"
@@ -239,8 +249,13 @@ main() {
     echo ""
 
     while true; do
-        echo -n "Choose setup option (1 for automated, 2 for manual): "
+        echo -n "Choose setup option (1 for automated, 2 for manual) [1]: "
         read -r choice
+        
+        # Default to 1 if empty
+        if [ -z "$choice" ]; then
+            choice="1"
+        fi
 
         case $choice in
             1)
