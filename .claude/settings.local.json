@@ -73,7 +73,10 @@
       "Bash(AIDBOX_URL=http://localhost:8081 FORM_AUTOPOPULATION_CLIENT_ID=form-auto-population-service FORM_AUTOPOPULATION_CLIENT_SECRET=Z4AnRnE9YnIH8CYfJRJm1mXDNlXl8MZ3 KAFKA_BOOTSTRAP_SERVERS=localhost:9094 npx nx serve form-auto-population-service)",
       "Bash(KAFKA_BOOTSTRAP_SERVERS= npx nx serve form-auto-population-service --skipNxCache)",
       "Bash(AIDBOX_URL=http://localhost:8081 FORM_AUTOPOPULATION_CLIENT_ID=form-auto-population-service FORM_AUTOPOPULATION_CLIENT_SECRET=Z4AnRnE9YnIH8CYfJRJm1mXDNlXl8MZ3 KAFKA_BOOTSTRAP_SERVERS=localhost:9094 npx nx serve form-auto-population-service --skipNxCache)",
-      "Bash(npm audit:*)"
+      "Bash(npm audit:*)",
+      "Bash(docker system prune:*)",
+      "Bash(docker ps:*)",
+      "Bash(AIDBOX_URL=http://localhost:8081 FORM_AUTOPOPULATION_CLIENT_ID=form-auto-population-service FORM_AUTOPOPULATION_CLIENT_SECRET=8kG6ie9cfibeN8u9ZnqnVXGMrZtPPIPH KAFKA_BOOTSTRAP_SERVERS=localhost:9094 npx nx serve form-auto-population-service --port=3000)"
     ],
     "deny": [],
     "ask": []

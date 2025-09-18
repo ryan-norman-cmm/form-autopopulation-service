@@ -4,6 +4,45 @@
 
 set -e  # Exit on any error
 
+# Default values
+CLEAN_DOCKER=false
+AIDBOX_LICENSE=""
+AUTOMATE=false
+SKIP_BROWSER=false
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --clean)
+            CLEAN_DOCKER=true
+            shift
+            ;;
+        --license)
+            AIDBOX_LICENSE="$2"
+            shift 2
+            ;;
+        --automate)
+            AUTOMATE=true
+            SKIP_BROWSER=true
+            shift
+            ;;
+        --help)
+            echo "Usage: $0 [OPTIONS]"
+            echo "Options:"
+            echo "  --clean      Clean all Docker images, volumes, and containers before setup"
+            echo "  --license    Provide Aidbox license key (skips interactive prompt)"
+            echo "  --automate   Fully automated setup with no user prompts"
+            echo "  --help       Show this help message"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -31,6 +70,33 @@ log_error() {
 # Generate secure random password
 generate_password() {
     openssl rand -base64 32 | tr -d "=+/" | cut -c1-32
+}
+
+# Clean Docker state completely
+clean_docker_state() {
+    log_info "Cleaning Docker state completely..."
+    
+    # Stop and remove all containers
+    if docker ps -q | grep -q .; then
+        log_info "Stopping running containers..."
+        docker stop $(docker ps -q) || true
+    fi
+    
+    # Remove containers, networks, and volumes with explicit volume removal
+    log_info "Removing containers, networks, and volumes..."
+    docker compose down --remove-orphans --volumes 2>/dev/null || true
+    
+    # Explicitly remove any remaining project volumes
+    log_info "Removing any remaining project volumes..."
+    if docker volume ls -q | grep -q "form-auto-population"; then
+        docker volume rm $(docker volume ls -q | grep "form-auto-population") 2>/dev/null || true
+    fi
+    
+    # Clean system: containers, networks, images, volumes
+    log_info "Performing complete Docker cleanup..."
+    docker system prune -af --volumes || true
+    
+    log_success "Docker state cleaned successfully"
 }
 
 # Check if required tools are available
@@ -81,6 +147,19 @@ open_browser() {
 
 # Get Aidbox license from user
 get_aidbox_license() {
+    # If license provided via command line, use it
+    if [ -n "$AIDBOX_LICENSE" ]; then
+        echo "$AIDBOX_LICENSE"
+        return 0
+    fi
+    
+    # If in automated mode and no license provided, error
+    if [ "$AUTOMATE" = true ]; then
+        log_error "Automated mode requires --license parameter" >&2
+        log_error "Usage: $0 --automate --license 'your-license-key'" >&2
+        exit 1
+    fi
+    
     log_info "Aidbox FHIR server requires a development license (free, 100-year validity)" >&2
     echo "" >&2
     echo "📋 License acquisition steps:" >&2
@@ -90,17 +169,21 @@ get_aidbox_license() {
     echo "   4. Copy the generated license key" >&2
     echo "" >&2
 
-    # Ask if user wants to open browser
-    echo -n "Would you like to open the Aidbox signup page in your browser? [Y/n]: " >&2
-    read -r open_browser_choice
-    
-    # Default to Y if empty
-    if [ -z "$open_browser_choice" ] || [[ "$open_browser_choice" =~ ^[Yy]$ ]]; then
-        log_info "Opening Aidbox signup page..." >&2
-        if open_browser "https://aidbox.app/ui/portal#/signup" >&2; then
-            log_success "Browser opened successfully" >&2
+    # Ask if user wants to open browser (skip if automated)
+    if [ "$SKIP_BROWSER" = false ]; then
+        echo -n "Would you like to open the Aidbox signup page in your browser? [Y/n]: " >&2
+        read -r open_browser_choice
+        
+        # Default to Y if empty
+        if [ -z "$open_browser_choice" ] || [[ "$open_browser_choice" =~ ^[Yy]$ ]]; then
+            log_info "Opening Aidbox signup page..." >&2
+            if open_browser "https://aidbox.app/ui/portal#/signup" >&2; then
+                log_success "Browser opened successfully" >&2
+            else
+                log_warning "Please manually visit: https://aidbox.app/ui/portal#/signup" >&2
+            fi
         else
-            log_warning "Please manually visit: https://aidbox.app/ui/portal#/signup" >&2
+            log_info "Please manually visit: https://aidbox.app/ui/portal#/signup" >&2
         fi
     else
         log_info "Please manually visit: https://aidbox.app/ui/portal#/signup" >&2
@@ -232,9 +315,30 @@ main() {
 
     # Check dependencies
     check_dependencies
+    
+    # Clean Docker state if requested
+    if [ "$CLEAN_DOCKER" = true ]; then
+        clean_docker_state
+        echo ""
+    fi
+    
+    # Remove any existing .env file
+    if [ -f ".env" ]; then
+        log_info "Removing existing .env file..."
+        rm -f .env
+        log_success "Existing .env file removed"
+        echo ""
+    fi
 
     # Generate environment file (includes license acquisition)
     generate_env_file
+
+    # If automated mode, skip user choice
+    if [ "$AUTOMATE" = true ]; then
+        log_info "Running in automated mode..."
+        automated_setup
+        return 0
+    fi
 
     echo ""
     log_info "🚀 Complete setup options:"

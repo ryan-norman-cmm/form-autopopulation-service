@@ -22,10 +22,10 @@ services:
     image: postgres:17-alpine
     container_name: aidbox-database
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-aidbox}
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-aidbox}
-      POSTGRES_INITDB_ARGS: '--auth-host=scram-sha-256'
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: '--auth-host=md5'
     command:
       - postgres
       - -c
@@ -47,11 +47,7 @@ services:
         ipv4_address: 172.25.0.21
     restart: unless-stopped
     healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'pg_isready -U ${POSTGRES_USER:-aidbox} -d ${POSTGRES_DB:-aidbox}',
-        ]
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -75,11 +71,11 @@ services:
       BOX_ADMIN_PASSWORD: ${AIDBOX_ADMIN_PASSWORD}
       BOX_BOOTSTRAP_FHIR_PACKAGES: hl7.fhir.r4.core#4.0.1
       BOX_COMPATIBILITY_VALIDATION_JSON__SCHEMA_REGEX: '#{:fhir-datetime}'
-      BOX_DB_DATABASE: ${POSTGRES_DB:-aidbox}
+      BOX_DB_DATABASE: ${POSTGRES_DB}
       BOX_DB_HOST: postgres-aidbox
       BOX_DB_PASSWORD: ${POSTGRES_PASSWORD}
       BOX_DB_PORT: '5432'
-      BOX_DB_USER: ${POSTGRES_USER:-aidbox}
+      BOX_DB_USER: ${POSTGRES_USER}
       AIDBOX_LICENSE: ${AIDBOX_LICENSE_KEY}
       BOX_FHIR_COMPLIANT_MODE: true
       BOX_FHIR_CORRECT_AIDBOX_FORMAT: true
