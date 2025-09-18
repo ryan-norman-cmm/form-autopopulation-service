@@ -23,12 +23,12 @@
     {
       "request": {
         "method": "PUT",
-        "url": "AccessPolicy/as-client-questionnaire-read"
+        "url": "AccessPolicy/as-form-auto-population-client-questionnaire-read"
       },
       "resource": {
         "resourceType": "AccessPolicy",
-        "id": "as-client-questionnaire-read",
-        "description": "Allow form-auto-population-service to read and search Questionnaire resources",
+        "id": "as-form-auto-population-client-questionnaire-read",
+        "description": "Allow Form Auto-Population Service to read and search Questionnaire resources",
         "engine": "matcho",
         "matcho": {
           "client": {
@@ -44,12 +44,12 @@
     {
       "request": {
         "method": "PUT",
-        "url": "AccessPolicy/as-client-questionnaire-write"
+        "url": "AccessPolicy/as-form-auto-population-client-questionnaire-write"
       },
       "resource": {
         "resourceType": "AccessPolicy",
-        "id": "as-client-questionnaire-write",
-        "description": "Allow form-auto-population-service to create, update, delete Questionnaire resources",
+        "id": "as-form-auto-population-client-questionnaire-write",
+        "description": "Allow Form Auto-Population Service to create, update, delete Questionnaire resources",
         "engine": "matcho",
         "matcho": {
           "client": {
@@ -65,12 +65,12 @@
     {
       "request": {
         "method": "PUT",
-        "url": "AccessPolicy/as-client-questionnaireresponse-read"
+        "url": "AccessPolicy/as-form-auto-population-client-questionnaireresponse-read"
       },
       "resource": {
         "resourceType": "AccessPolicy",
-        "id": "as-client-questionnaireresponse-read",
-        "description": "Allow form-auto-population-service to read and search QuestionnaireResponse resources",
+        "id": "as-form-auto-population-client-questionnaireresponse-read",
+        "description": "Allow Form Auto-Population Service to read and search QuestionnaireResponse resources",
         "engine": "matcho",
         "matcho": {
           "client": {
@@ -86,12 +86,12 @@
     {
       "request": {
         "method": "PUT",
-        "url": "AccessPolicy/as-client-patient-read"
+        "url": "AccessPolicy/as-form-auto-population-client-patient-read"
       },
       "resource": {
         "resourceType": "AccessPolicy",
-        "id": "as-client-patient-read",
-        "description": "Allow form-auto-population-service to read and search Patient resources",
+        "id": "as-form-auto-population-client-patient-read",
+        "description": "Allow Form Auto-Population Service to read and search Patient resources",
         "engine": "matcho",
         "matcho": {
           "client": {
@@ -107,12 +107,12 @@
     {
       "request": {
         "method": "PUT",
-        "url": "AccessPolicy/as-client-questionnaireresponse-write"
+        "url": "AccessPolicy/as-form-auto-population-client-questionnaireresponse-write"
       },
       "resource": {
         "resourceType": "AccessPolicy",
-        "id": "as-client-questionnaireresponse-write",
-        "description": "Allow form-auto-population-service to create, update QuestionnaireResponse resources",
+        "id": "as-form-auto-population-client-questionnaireresponse-write",
+        "description": "Allow Form Auto-Population Service to create, update QuestionnaireResponse resources",
         "engine": "matcho",
         "matcho": {
           "client": {

@@ -39,7 +39,7 @@ services:
       - -c
       - shared_buffers=256MB
     ports:
-      - '5434:5432'
+      - '${POSTGRES_PORT}:${POSTGRES_INTERNAL_PORT}'
     volumes:
       - postgres_data_aidbox:/var/lib/postgresql/data
     networks:
@@ -64,7 +64,7 @@ services:
       kafka:
         condition: service_healthy
     ports:
-      - '8081:8080'
+      - '${AIDBOX_PORT}:${AIDBOX_INTERNAL_PORT}'
     volumes:
       - /tmp/aidbox-init-bundle.json:/tmp/aidbox-init-bundle.json:ro
     environment:
@@ -113,7 +113,7 @@ services:
     image: bitnami/zookeeper:3.9.3
     container_name: kafka-zookeeper
     ports:
-      - '2182:2181'
+      - '${ZOOKEEPER_PORT}:${ZOOKEEPER_INTERNAL_PORT}'
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
       - ZOO_SERVER_ID=1
@@ -136,8 +136,8 @@ services:
     image: bitnamilegacy/kafka:3.9.0
     container_name: kafka-broker
     ports:
-      - '9093:9092' # Internal port
-      - '9094:9094' # External port for host access
+      - '${KAFKA_EXTERNAL_HOST_PORT}:${KAFKA_INTERNAL_PORT}' # Internal port
+      - '${KAFKA_EXTERNAL_PORT}:${KAFKA_EXTERNAL_PORT}' # External port for host access
     environment:
       - KAFKA_BROKER_ID=1
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
@@ -188,7 +188,7 @@ services:
     container_name: kafka-ui
     platform: linux/amd64
     ports:
-      - '19001:9000'
+      - '${KAFDROP_PORT}:${KAFDROP_INTERNAL_PORT}'
     environment:
       KAFKA_BROKERCONNECT: 'kafka:9092'
       JVM_OPTS: '-Xms32M -Xmx64M'
