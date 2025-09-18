@@ -278,6 +278,11 @@ generate_env_file() {
     export AIDBOX_ADMIN_PASSWORD="$aidbox_admin_password"
     export AIDBOX_LICENSE_KEY="$aidbox_license"
 
+    # Source port variables from .env for display messages
+    export AIDBOX_PORT=$(grep "^AIDBOX_PORT=" .env | cut -d'=' -f2)
+    export KAFDROP_PORT=$(grep "^KAFDROP_PORT=" .env | cut -d'=' -f2)
+    export PORT=$(grep "^PORT=" .env | cut -d'=' -f2)
+
     log_success ".env file generated with secure credentials and Aidbox license"
     log_info "Generated credentials:"
     echo "  - POSTGRES_PASSWORD: $postgres_password"
@@ -401,13 +406,13 @@ automated_setup() {
     log_info "Your FHIR healthcare application is now fully configured and running!"
     echo ""
     log_info "📊 Access URLs:"
-    echo "   • Aidbox FHIR Server: http://localhost:8081"
-    echo "   • Kafka UI (Kafdrop): http://localhost:19001"
+    echo "   • Aidbox FHIR Server: http://localhost:${AIDBOX_PORT}"
+    echo "   • Kafka UI (Kafdrop): http://localhost:${KAFDROP_PORT}"
     echo ""
     log_info "🚀 Start your service:"
     echo "   npx nx serve form-auto-population-service"
     echo ""
-    log_info "   Your service will be available at: http://localhost:3000"
+    log_info "   Your service will be available at: http://localhost:${PORT}"
     echo ""
     log_info "💡 All FHIR resources were automatically seeded using Aidbox's native init bundle!"
     echo ""
@@ -431,9 +436,9 @@ manual_setup_instructions() {
     log_info "2. Start service: npx nx serve form-auto-population-service"
     echo ""
     log_info "📊 Access URLs (after starting services):"
-    echo "   • Aidbox FHIR Server: http://localhost:8081"
-    echo "   • Kafka UI (Kafdrop): http://localhost:19001"
-    echo "   • Form Auto-Population Service: http://localhost:3000"
+    echo "   • Aidbox FHIR Server: http://localhost:${AIDBOX_PORT}"
+    echo "   • Kafka UI (Kafdrop): http://localhost:${KAFDROP_PORT}"
+    echo "   • Form Auto-Population Service: http://localhost:${PORT}"
     echo ""
     log_info "💡 FHIR resources will be automatically seeded when Aidbox starts!"
     echo ""
