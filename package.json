@@ -57,7 +57,7 @@
     "jest": "^30.0.2",
     "jest-environment-node": "^30.0.2",
     "jest-util": "^30.0.2",
-    "jiti": "2.4.2",
+    "jiti": "2.6.1",
     "jsonc-eslint-parser": "^2.1.0",
     "kafkajs": "^2.2.4",
     "lint-staged": "^16.1.6",
