@@ -51,7 +51,7 @@
     "esbuild": "^0.19.2",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",
-    "eslint-plugin-playwright": "^1.6.2",
+    "eslint-plugin-playwright": "^2.2.2",
     "express": "^5.1.0",
     "husky": "^9.1.7",
     "jest": "^30.0.2",
